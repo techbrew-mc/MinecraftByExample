@@ -1,4 +1,4 @@
-MinecraftByExample [1.8.9]
+MinecraftByExample [1.9.4]
 ==================
 
 The purpose of MinecraftByExample is to give simple working examples of the important concepts in Minecraft and Forge. If you're anything like me, a good code example is worth several screens worth of waffling explanation, and can very quickly explain the key concepts.  I also find it much easier to adapt and debug something that already works, than to have to synthesize something from scratch and spend hours trying to discover the missing bit of information I didn't know about.
@@ -17,6 +17,7 @@ If you want more information and explanatory text about the concepts, the follow
 
 ####For earlier versions, see the relevant GitHub branch:
  - MBE for Forge 1.8: [1-8final][version1-8]
+ - MBE for Forge 1.8.9: [1-8-9a][master]
 
 ##List of examples
 ### Blocks
