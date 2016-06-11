@@ -4,12 +4,12 @@ import minecraftbyexample.usefultools.UsefulFunctions;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.math.Vec3d;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
@@ -53,8 +53,8 @@ public class TileEntitySpecialRendererMBE21 extends TileEntitySpecialRenderer
     final double pedestalCentreOffsetX = 0.5;
     final double pedestalCentreOffsetY = 0.8;
     final double pedestalCentreOffsetZ = 0.5;
-    Vec3 playerEye = new Vec3(0.0, 0.0, 0.0);
-    Vec3 pedestalCentre = new Vec3(relativeX + pedestalCentreOffsetX, relativeY + pedestalCentreOffsetY, relativeZ + pedestalCentreOffsetZ);
+    Vec3d playerEye = new Vec3d(0.0, 0.0, 0.0);
+    Vec3d pedestalCentre = new Vec3d(relativeX + pedestalCentreOffsetX, relativeY + pedestalCentreOffsetY, relativeZ + pedestalCentreOffsetZ);
     double playerDistance = playerEye.distanceTo(pedestalCentre);
 
     final double DISTANCE_FOR_MIN_SPIN = 8.0;
@@ -107,7 +107,7 @@ public class TileEntitySpecialRendererMBE21 extends TileEntitySpecialRenderer
       GlStateManager.scale(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
 
       Tessellator tessellator = Tessellator.getInstance();
-      WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+      VertexBuffer worldrenderer = tessellator.getBuffer();
       this.bindTexture(gemTexture);         // texture for the gem appearance
 
       // set the key rendering flags appropriately...
@@ -143,7 +143,7 @@ public class TileEntitySpecialRendererMBE21 extends TileEntitySpecialRenderer
 
   // add the vertices for drawing the gem.  Generated using a model builder and pasted manually because the object model
   //   loader is (not yet?) implemented.
-  private void addGemVertices(WorldRenderer worldrenderer) {
+  private void addGemVertices(VertexBuffer worldrenderer) {
     final double[][] vertexTable = {
             {0.000,1.000,0.000,0.000,0.118},          //1
             {-0.354,0.500,-0.354,0.000,0.354},

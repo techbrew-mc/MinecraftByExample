@@ -5,21 +5,26 @@ import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyInteger;
-import net.minecraft.block.state.BlockState;
+import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryHelper;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.util.EnumBlockRenderType;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumWorldBlockLayer;
-import net.minecraft.util.MathHelper;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+
+import javax.annotation.Nullable;
 
 
 /**
@@ -38,8 +43,8 @@ public class BlockInventoryFurnace extends BlockContainer
 {
 	public BlockInventoryFurnace()
 	{
-		super(Material.rock);
-		this.setCreativeTab(CreativeTabs.tabBlock);
+		super(Material.ROCK);
+		this.setCreativeTab(CreativeTabs.BUILDING_BLOCKS);
 	}
 
 	// Called when the block is placed or loaded client side to get the tile entity for the block
@@ -52,7 +57,8 @@ public class BlockInventoryFurnace extends BlockContainer
 	// Called when the block is right clicked
 	// In this block it is used to open the blocks gui when right clicked by a player
 	@Override
-	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumFacing side, float hitX, float hitY, float hitZ) {
+	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, @Nullable ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ)
+	{
 		// Uses the gui handler registered to your mod to open the gui for the given gui id
 		// open on the server side only  (not sure why you shouldn't open client side too... vanilla doesn't, so we better not either)
 		if (worldIn.isRemote) return true;
@@ -141,9 +147,9 @@ public class BlockInventoryFurnace extends BlockContainer
 	// necessary to define which properties your blocks use
 	// will also affect the variants listed in the blockstates model file.  See MBE03 for more info.
 	@Override
-	protected BlockState createBlockState()
+	protected BlockStateContainer createBlockState()
 	{
-		return new BlockState(this, new IProperty[] {BURNING_SIDES_COUNT});
+		return new BlockStateContainer(this, new IProperty[] {BURNING_SIDES_COUNT});
 	}
 
 	public static final PropertyInteger BURNING_SIDES_COUNT = PropertyInteger.create("burning_sides_count", 0, 4);
@@ -153,7 +159,7 @@ public class BlockInventoryFurnace extends BlockContainer
 	private static final int ONE_SIDE_LIGHT_VALUE = 8;  // light value for a single side burning
 
   @Override
-	public int getLightValue(IBlockAccess world, BlockPos pos) {
+	public int getLightValue(IBlockState state, IBlockAccess world, BlockPos pos) {
 		int lightValue = 0;
 		IBlockState blockState = getActualState(getDefaultState(), world, pos);
 		int burningSides = (Integer)blockState.getValue(BURNING_SIDES_COUNT);
@@ -170,15 +176,15 @@ public class BlockInventoryFurnace extends BlockContainer
 
 	// the block will render in the SOLID layer.  See http://greyminecraftcoder.blogspot.co.at/2014/12/block-rendering-18.html for more information.
 	@SideOnly(Side.CLIENT)
-	public EnumWorldBlockLayer getBlockLayer()
+	public BlockRenderLayer getBlockLayer()
 	{
-		return EnumWorldBlockLayer.SOLID;
+		return BlockRenderLayer.SOLID;
 	}
 
 	// used by the renderer to control lighting and visibility of other blocks.
 	// set to false because this block doesn't fill the entire 1x1x1 space
 	@Override
-	public boolean isOpaqueCube() {
+	public boolean isOpaqueCube(IBlockState state) {
 		return false;
 	}
 
@@ -186,14 +192,14 @@ public class BlockInventoryFurnace extends BlockContainer
 	// (eg) wall or fence to control whether the fence joins itself to this block
 	// set to false because this block doesn't fill the entire 1x1x1 space
 	@Override
-	public boolean isFullCube() {
+	public boolean isFullBlock(IBlockState state) {
 		return false;
 	}
 
 	// render using a BakedModel
 	// not strictly required because the default (super method) is 3.
 	@Override
-	public int getRenderType() {
-		return 3;
+	public EnumBlockRenderType getRenderType(IBlockState state) {
+		return EnumBlockRenderType.MODEL;
 	}
 }

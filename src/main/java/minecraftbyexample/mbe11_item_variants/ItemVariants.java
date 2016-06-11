@@ -1,12 +1,16 @@
 package minecraftbyexample.mbe11_item_variants;
 
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.EnumActionResult;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.IStringSerializable;
-import net.minecraft.util.StatCollector;
+import net.minecraft.util.text.translation.I18n;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -31,7 +35,7 @@ public class ItemVariants extends Item
     this.setMaxDamage(0);
     this.setHasSubtypes(true);
     this.setMaxStackSize(1);
-    this.setCreativeTab(CreativeTabs.tabMisc);   // items will appear on the Miscellaneous creative tab
+    this.setCreativeTab(CreativeTabs.MISC);   // items will appear on the Miscellaneous creative tab
   }
 
   @Override
@@ -83,20 +87,21 @@ public class ItemVariants extends Item
   // called when the player starts holding right click;
   // --> start drinking the liquid (if the bottle isn't already empty)
   @Override
-  public ItemStack onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn)
+  public ActionResult<ItemStack> onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn, EnumHand hand)
   {
     int metadata = itemStackIn.getMetadata();
     int fullnessBits = (metadata >> 2) & 0x07;
     EnumBottleFullness fullness = EnumBottleFullness.byMetadata(fullnessBits);
-    if (fullness == EnumBottleFullness.EMPTY) return itemStackIn;
-    playerIn.setItemInUse(itemStackIn, this.getMaxItemUseDuration(itemStackIn));
-    return itemStackIn;
+    if (fullness == EnumBottleFullness.EMPTY) return new ActionResult<ItemStack>(EnumActionResult.FAIL, itemStackIn);
+    playerIn.setHeldItem(EnumHand.MAIN_HAND, itemStackIn);
+    //playerIn.setItemInUse(itemStackIn, this.getMaxItemUseDuration(itemStackIn));
+    return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, itemStackIn);
   }
 
   // called when the player has held down right button for the full item use duration
   // --> decrease the bottle fullness by one step
   @Override
-  public ItemStack onItemUseFinish(ItemStack stack, World worldIn, EntityPlayer playerIn)
+  public ItemStack onItemUseFinish(ItemStack stack, World worldIn, EntityLivingBase entityLiving)
   {
     int metadata = stack.getMetadata();
     int contentsBits = metadata & 0x03;
@@ -112,7 +117,7 @@ public class ItemVariants extends Item
   @Override
   public String getItemStackDisplayName(ItemStack stack)
   {
-    String s = ("" + StatCollector.translateToLocal(this.getUnlocalizedName(stack) + ".name")).trim();
+    String s = ("" + I18n.translateToLocal(this.getUnlocalizedName(stack) + ".name")).trim();
     int metadata = stack.getMetadata();
     int fullnessBits = (metadata >> 2) & 0x07;
     EnumBottleFullness fullness = EnumBottleFullness.byMetadata(fullnessBits);

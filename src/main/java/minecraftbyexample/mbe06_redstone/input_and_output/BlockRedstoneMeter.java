@@ -8,9 +8,10 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.util.EnumBlockRenderType;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumWorldBlockLayer;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
@@ -35,8 +36,8 @@ public class BlockRedstoneMeter extends Block implements ITileEntityProvider
 {
   public BlockRedstoneMeter()
   {
-    super(Material.iron);
-    this.setCreativeTab(CreativeTabs.tabBlock);   // the block will appear on the Blocks tab in creative
+    super(Material.IRON);
+    this.setCreativeTab(CreativeTabs.BUILDING_BLOCKS);   // the block will appear on the Blocks tab in creative
   }
 
   // Called when the block is placed or loaded client side to get the tile entity for the block
@@ -55,7 +56,7 @@ public class BlockRedstoneMeter extends Block implements ITileEntityProvider
    * @return
    */
   @Override
-  public boolean canProvidePower()
+  public boolean canProvidePower(IBlockState state)
   {
     return true;
   }
@@ -63,21 +64,21 @@ public class BlockRedstoneMeter extends Block implements ITileEntityProvider
   /** How much weak power does this block provide to the adjacent block?
    * The meter flashes the power according to how strong the input signals are
    * See http://greyminecraftcoder.blogspot.com.au/2015/11/redstone.html for more information
-   * @param worldIn
+   * @param blockAccess
    * @param pos the position of this block
-   * @param state the blockstate of this block
+   * @param blockState the blockstate of this block
    * @param side the side of the block - eg EAST means that this is to the EAST of the adjacent block.
    * @return The power provided [0 - 15]
    */
   @Override
-  public int getWeakPower(IBlockAccess worldIn, BlockPos pos, IBlockState state, EnumFacing side)
+  public int getWeakPower(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side)
   {
     if (side != EnumFacing.UP && side != EnumFacing.DOWN) {
       return 0;
     }
 
     boolean isOutputOn = false;
-    TileEntity tileentity = worldIn.getTileEntity(pos);
+    TileEntity tileentity = blockAccess.getTileEntity(pos);
     if (tileentity instanceof TileEntityRedstoneMeter) { // prevent a crash if not the right type, or is null
       TileEntityRedstoneMeter tileEntityRedstoneMeter = (TileEntityRedstoneMeter) tileentity;
       isOutputOn = tileEntityRedstoneMeter.getOutputState();
@@ -89,15 +90,15 @@ public class BlockRedstoneMeter extends Block implements ITileEntityProvider
 
   /**
    *  The target provides strong power to the block it's mounted on (hanging on)
-   * @param worldIn
+   * @param blockAccess
    * @param pos the position of this block
-   * @param state the blockstate of this block
+   * @param blockState the blockstate of this block
    * @param side the side of the block - eg EAST means that this is to the EAST of the adjacent block.
    * @return The power provided [0 - 15]
    */
 
   @Override
-  public int getStrongPower(IBlockAccess worldIn, BlockPos pos, IBlockState state, EnumFacing side)
+  public int getStrongPower(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side)
   {
     return 0;
   }
@@ -129,7 +130,7 @@ public class BlockRedstoneMeter extends Block implements ITileEntityProvider
   // Called when a neighbouring block changes.
   // Only called on the server side- so it doesn't help us alter rendering on the client side.
   @Override
-  public void onNeighborBlockChange(World worldIn, BlockPos pos, IBlockState state, Block neighborBlock)
+  public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn)
   {
     // calculate the power level from neighbours and store in our TileEntity for later use in isProvidingWeakPower()
     int powerLevel = getPowerLevelInput(worldIn, pos);
@@ -186,24 +187,24 @@ public class BlockRedstoneMeter extends Block implements ITileEntityProvider
   // -----------------
   // The following methods aren't particularly relevant to this example.  See MBE01, MBE02, MBE03 for more information.
   @SideOnly(Side.CLIENT)
-  public EnumWorldBlockLayer getBlockLayer()
+  public BlockRenderLayer getBlockLayer()
   {
-    return EnumWorldBlockLayer.CUTOUT_MIPPED;
+    return BlockRenderLayer.CUTOUT_MIPPED;
   }
 
   @Override
-  public boolean isOpaqueCube() {
+  public boolean isOpaqueCube(IBlockState state) {
     return false;
   }
 
   @Override
-  public boolean isFullCube() {
+  public boolean isFullBlock(IBlockState state) {
     return false;
   }
 
   @Override
-  public int getRenderType() {
-    return 3;
+  public EnumBlockRenderType getRenderType(IBlockState state) {
+    return EnumBlockRenderType.MODEL;
   }
 
 

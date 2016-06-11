@@ -58,9 +58,9 @@ public class EventHandlerOverlay
     }
     if (!foundInHotbar) return;
 
-    switch (event.type) {
+    switch (event.getType()) {
       case HEALTH:
-        statusBarRenderer.renderStatusBar(event.resolution.getScaledWidth(), event.resolution.getScaledHeight());        /* Call a helper method so that this method stays organized */
+        statusBarRenderer.renderStatusBar(event.getResolution().getScaledWidth(), event.getResolution().getScaledHeight());        /* Call a helper method so that this method stays organized */
         /* Don't render the vanilla heart bar */
         event.setCanceled(true);
         break;
@@ -103,7 +103,7 @@ public class EventHandlerOverlay
     /* The matrix must be popped whenever it is pushed. In this example, I pushed
      * in the FOOD and AIR cases, so I have to pop in those cases here.
      */
-    switch (event.type) {
+    switch (event.getType()) {
       case HEALTH:
         break;
       case HOTBAR:

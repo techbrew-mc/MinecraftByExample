@@ -1,6 +1,6 @@
 package minecraftbyexample.mbe12_item_nbt_animate;
 
-import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 
 import java.util.ArrayList;
 

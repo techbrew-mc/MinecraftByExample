@@ -1,5 +1,6 @@
-package minecraftbyexample.mbe50_entityfx;
+package minecraftbyexample.mbe50_particle;
 
+import minecraftbyexample.mbe50_particle.FlameFX;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -7,6 +8,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.util.*;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -20,28 +24,28 @@ import java.util.Random;
  *
  * BlockFlameEmitter is a simple block made from a couple of smaller pieces.
  * See mbe02_block_partial for more information
- * The interesting part for EntityFX is randomDisplayTick(), which spawns our FlameFX... see below.
+ * The interesting part for Particle is randomDisplayTick(), which spawns our FlameFX... see below.
  */
 public class BlockFlameEmitter extends Block
 {
   public BlockFlameEmitter()
   {
-    super(Material.rock);
-    this.setCreativeTab(CreativeTabs.tabBlock);   // the block will appear on the Blocks tab in creative
+    super(Material.ROCK);
+    this.setCreativeTab(CreativeTabs.BUILDING_BLOCKS);   // the block will appear on the Blocks tab in creative
   }
 
   // the block will render in the SOLID layer.  See http://greyminecraftcoder.blogspot.co.at/2014/12/block-rendering-18.html for more information.
   @SideOnly(Side.CLIENT)
-  public EnumWorldBlockLayer getBlockLayer()
+  public BlockRenderLayer getBlockLayer()
   {
-    return EnumWorldBlockLayer.SOLID;
+    return BlockRenderLayer.SOLID;
   }
 
   // used by the renderer to control lighting and visibility of other blocks.
   // set to true because this block is opaque and occupies the entire 1x1x1 space
   // not strictly required because the default (super method) is true
   @Override
-  public boolean isOpaqueCube() {
+  public boolean isOpaqueCube(IBlockState state) {
     return false;
   }
 
@@ -50,36 +54,36 @@ public class BlockFlameEmitter extends Block
   // set to true because this block occupies the entire 1x1x1 space
   // not strictly required because the default (super method) is true
   @Override
-  public boolean isFullCube() {
+  public boolean isFullBlock(IBlockState state) {
     return true;
   }
 
   // render using a BakedModel (mbe01_block_simple.json --> mbe01_block_simple_model.json)
   // not strictly required because the default (super method) is 3.
   @Override
-  public int getRenderType() {
-    return 3;
+  public EnumBlockRenderType getRenderType(IBlockState state) {
+    return EnumBlockRenderType.MODEL;
   }
 
 
   // This method is called at random intervals - typically used by blocks which produce occasional effects, like
   //  smoke from a torch or stars from a portal.
-  //  In this case, we use it to spawn two different types of EntityFX- vanilla, or custom.
+  //  In this case, we use it to spawn two different types of Particle- vanilla, or custom.
   // Don't forget     @SideOnly(Side.CLIENT) otherwise this will crash on a dedicated server.
   @Override
   @SideOnly(Side.CLIENT)
-  public void randomDisplayTick(World worldIn, BlockPos pos, IBlockState state, Random rand)
+  public void randomDisplayTick(IBlockState stateIn, World worldIn, BlockPos pos, Random rand)
   {
-    // EntityFX must be spawned on the client only.
-    // If you want the server to be able to spawn EntityFX, you need to send a network message to the client and get the
-    //   client to spawn the EntityFX in response to the message (see mbe60 MessageHandlerOnClient for an example).
+    // Particle must be spawned on the client only.
+    // If you want the server to be able to spawn Particle, you need to send a network message to the client and get the
+    //   client to spawn the Particle in response to the message (see mbe60 MessageHandlerOnClient for an example).
     if (worldIn.isRemote) {  // is this on the client side?
       // first example:
       // spawn a vanilla particle of LAVA type (smoke from lava)
       //  The starting position is the [x,y,z] of the tip of the pole (i.e. at [0.5, 1.0, 0.5] relative to the block position)
       //  Set the initial velocity to zero.
       // When the particle is spawned, it will automatically add a random amount of velocity - see EntityLavaFX constructor and
-      //   EntityFX constructor.  This can be a nuisance if you don't want your EntityFX to have a random starting velocity!  See
+      //   Particle constructor.  This can be a nuisance if you don't want your Particle to have a random starting velocity!  See
       //  second example below for more information.
 
       double xpos = pos.getX() + 0.5;
@@ -93,7 +97,7 @@ public class BlockFlameEmitter extends Block
       worldIn.spawnParticle(EnumParticleTypes.LAVA, xpos, ypos, zpos, velocityX, velocityY, velocityZ, extraInfo);
 
       // second example:
-      // spawn a custom EntityFX ("FlameFX") with a texture we have added ourselves.
+      // spawn a custom Particle ("FlameFX") with a texture we have added ourselves.
       // FlameFX also has custom movement and collision logic - it moves in a straight line until it hits something.
       // To make it more interesting, the stream of fireballs will target the nearest non-player entity within 16 blocks at
       //   the height of the pole or above.
@@ -104,9 +108,9 @@ public class BlockFlameEmitter extends Block
       zpos = pos.getZ() + 0.5;
 
       EntityMob mobTarget = getNearestTargetableMob(worldIn, xpos, ypos, zpos);
-      Vec3 fireballDirection;
+      Vec3d fireballDirection;
       if (mobTarget == null) { // no target: fire straight upwards
-        fireballDirection = new Vec3(0.0, 1.0, 0.0);
+        fireballDirection = new Vec3d(0.0, 1.0, 0.0);
       } else {  // otherwise: aim at the mob
         // the direction that the fireball needs to travel is calculated from the starting point (the pole) and the
         //   end point (the mob's eyes).  A bit of googling on vector maths will show you that you calculate this by
@@ -142,7 +146,7 @@ public class BlockFlameEmitter extends Block
    */
   private EntityMob getNearestTargetableMob(World world, double xpos, double ypos, double zpos) {
     final double TARGETING_DISTANCE = 16;
-    AxisAlignedBB targetRange = AxisAlignedBB.fromBounds(xpos - TARGETING_DISTANCE,
+    AxisAlignedBB targetRange = new AxisAlignedBB(xpos - TARGETING_DISTANCE,
                                                                 ypos,
                                                                 zpos - TARGETING_DISTANCE,
                                                                 xpos + TARGETING_DISTANCE,

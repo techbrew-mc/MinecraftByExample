@@ -4,14 +4,15 @@ import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
-import net.minecraft.block.state.BlockState;
+import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumWorldBlockLayer;
+import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.util.EnumBlockRenderType;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.property.ExtendedBlockState;
@@ -31,21 +32,21 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 public class Block3DWeb extends Block {
   public Block3DWeb()
   {
-    super(Material.web);                     // ensures the player can walk through the block
-    this.setCreativeTab(CreativeTabs.tabBlock);   // the block will appear on the Blocks tab in creative
+    super(Material.WEB);                     // ensures the player can walk through the block
+    this.setCreativeTab(CreativeTabs.BUILDING_BLOCKS);   // the block will appear on the Blocks tab in creative
   }
 
   // the block will render in the SOLID layer.  See http://greyminecraftcoder.blogspot.co.at/2014/12/block-rendering-18.html for more information.
   @SideOnly(Side.CLIENT)
-  public EnumWorldBlockLayer getBlockLayer()
+  public BlockRenderLayer getBlockLayer()
   {
-    return EnumWorldBlockLayer.SOLID;
+    return BlockRenderLayer.SOLID;
   }
 
   // used by the renderer to control lighting and visibility of other blocks.
   // set to false because this block doesn't fully occupy the entire 1x1x1 space
   @Override
-  public boolean isOpaqueCube() {
+  public boolean isOpaqueCube(IBlockState state) {
     return false;
   }
 
@@ -59,20 +60,20 @@ public class Block3DWeb extends Block {
   // (eg) wall or fence to control whether the fence joins itself to this block
   // set to false because this block does not occupy the entire 1x1x1 space
   @Override
-  public boolean isFullCube() {
+  public boolean isFullBlock(IBlockState state) {
     return false;
   }
 
   // render using an IBakedModel
   // not strictly required because the default (super method) is 3.
   @Override
-  public int getRenderType() {
-    return 3;
+  public EnumBlockRenderType getRenderType(IBlockState state) {
+    return EnumBlockRenderType.MODEL;
   }
 
   // by returning a null collision bounding box, we stop the player from colliding with it
   @Override
-  public AxisAlignedBB getCollisionBoundingBox(World worldIn, BlockPos pos, IBlockState state)
+  public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, World worldIn, BlockPos pos)
   {
     return null;
   }
@@ -88,14 +89,14 @@ public class Block3DWeb extends Block {
   // - listed properties (like vanilla), and
   // - unlisted properties, which can be used to convey information but do not cause extra variants to be created.
   @Override
-  protected BlockState createBlockState() {
+  protected BlockStateContainer createBlockState() {
     IProperty [] listedProperties = new IProperty[0]; // no listed properties
     IUnlistedProperty [] unlistedProperties = new IUnlistedProperty[] {LINK_UP, LINK_DOWN, LINK_EAST, LINK_WEST, LINK_NORTH, LINK_SOUTH};
     return new ExtendedBlockState(this, listedProperties, unlistedProperties);
   }
 
   // this method uses the block state and BlockPos to update the unlisted LINK properties in IExtendedBlockState based
-  // on non-metadata information.  This is then conveyed to the ISmartBlockModel during rendering.
+  // on non-metadata information.  This is then conveyed to the IBakedModel during rendering.
   // In this case, we look around the block to see which faces are next to either a solid block or another web block:
   // The web node forms a strand of web to any adjacent solid blocks or web nodes
   @Override
@@ -133,14 +134,15 @@ public class Block3DWeb extends Block {
    */
   private boolean canConnectTo(IBlockAccess worldIn, BlockPos pos)
   {
+    IBlockState state = worldIn.getBlockState(pos);
     Block block = worldIn.getBlockState(pos).getBlock();
-    if (block == Blocks.barrier) return false;
+    if (block == Blocks.BARRIER) return false;
     if (block == StartupCommon.block3DWeb) return true;
-    if (block.getMaterial().isOpaque() && block.isFullCube() && block.getMaterial() != Material.gourd) return true;
+    if (block.getMaterial(state).isOpaque() && block.isFullCube(state) && block.getMaterial(state) != Material.GOURD) return true;
     return false;
   }
 
-  // the LINK properties are used to communicate to the ISmartBlockModel which of the links should be drawn
+  // the LINK properties are used to communicate to the IBakedModel which of the links should be drawn
   public static final IUnlistedProperty<Boolean> LINK_UP = new Properties.PropertyAdapter<Boolean>(PropertyBool.create("link_up"));
   public static final IUnlistedProperty<Boolean> LINK_DOWN = new Properties.PropertyAdapter<Boolean>(PropertyBool.create("link_down"));
   public static final IUnlistedProperty<Boolean> LINK_WEST = new Properties.PropertyAdapter<Boolean>(PropertyBool.create("link_west"));

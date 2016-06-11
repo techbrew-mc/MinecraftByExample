@@ -1,36 +1,25 @@
 package minecraftbyexample.mbe06_redstone.input;
 
-import minecraftbyexample.mbe04_block_smartblockmodel1.UnlistedPropertyCopiedBlock;
-import minecraftbyexample.mbe06_redstone.input_and_output.TileEntityRedstoneMeter;
-import minecraftbyexample.mbe31_inventory_furnace.TileInventoryFurnace;
 import minecraftbyexample.usefultools.UsefulFunctions;
 import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyDirection;
-import net.minecraft.block.properties.PropertyInteger;
-import net.minecraft.block.state.BlockState;
+import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.util.EnumBlockRenderType;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumWorldBlockLayer;
-import net.minecraft.util.MathHelper;
-import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import net.minecraftforge.common.property.ExtendedBlockState;
-import net.minecraftforge.common.property.IUnlistedProperty;
-import net.minecraftforge.common.property.Properties;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-
-import java.awt.*;
-import java.util.Random;
 
 /**
  * User: The Grey Ghost
@@ -44,8 +33,8 @@ public class BlockRedstoneColouredLamp extends Block implements ITileEntityProvi
 {
   public BlockRedstoneColouredLamp()
   {
-    super(Material.iron);
-    this.setCreativeTab(CreativeTabs.tabBlock);   // the block will appear on the Blocks tab in creative
+    super(Material.IRON);
+    this.setCreativeTab(CreativeTabs.BUILDING_BLOCKS);   // the block will appear on the Blocks tab in creative
   }
 
   // Called when the block is placed or loaded client side to get the tile entity for the block
@@ -146,7 +135,7 @@ public class BlockRedstoneColouredLamp extends Block implements ITileEntityProvi
   // For that, we need to store the information in the tileentity and trigger a block update to send the
   //   information to the client side
   @Override
-  public void onNeighborBlockChange(World worldIn, BlockPos pos, IBlockState state, Block neighborBlock)
+  public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn)
   {
     TileEntity tileentity = worldIn.getTileEntity(pos);
     if (tileentity instanceof TileEntityRedstoneColouredLamp) { // prevent a crash if not the right type, or is null
@@ -156,7 +145,7 @@ public class BlockRedstoneColouredLamp extends Block implements ITileEntityProvi
 
       if (newLampColour != currentLampColour) {
         tileEntityRedstoneColouredLamp.setRGBcolour(newLampColour);
-        worldIn.markBlockForUpdate(pos);
+        worldIn.markBlockRangeForRenderUpdate(pos,pos);
       }
     }
   }
@@ -190,32 +179,32 @@ public class BlockRedstoneColouredLamp extends Block implements ITileEntityProvi
 
   // necessary to define which properties your blocks use - will also affect the variants listed in the blockstates model file
   @Override
-  protected BlockState createBlockState()
+  protected BlockStateContainer createBlockState()
   {
-    return new BlockState(this, new IProperty[] {PROPERTYFACING});
+    return new BlockStateContainer(this, new IProperty[] {PROPERTYFACING});
   }
 
   // -----------------
   // The following methods control the appearance of the block.
   @SideOnly(Side.CLIENT)
-  public EnumWorldBlockLayer getBlockLayer()
+  public BlockRenderLayer getBlockLayer()
   {
-    return EnumWorldBlockLayer.CUTOUT_MIPPED;
+    return BlockRenderLayer.CUTOUT_MIPPED;
   }
 
   @Override
-  public boolean isOpaqueCube() {
+  public boolean isOpaqueCube(IBlockState state) {
     return false;
   }
 
   @Override
-  public boolean isFullCube() {
+  public boolean isFullBlock(IBlockState state) {
     return false;
   }
 
   @Override
-  public int getRenderType() {
-    return 3;
+  public EnumBlockRenderType getRenderType(IBlockState state) {
+    return EnumBlockRenderType.MODEL;
   }
 
   /** Changes the colour of the lamp (the "tintindex" overlay only).
@@ -240,7 +229,7 @@ public class BlockRedstoneColouredLamp extends Block implements ITileEntityProvi
 
   // Change the lighting value based on the lamp colour
   @Override
-  public int getLightValue(IBlockAccess world, BlockPos pos) {
+  public int getLightValue(IBlockState state, IBlockAccess world, BlockPos pos) {
 
     int rgbColour = 0;
     TileEntity tileEntity = world.getTileEntity(pos);

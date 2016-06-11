@@ -17,6 +17,6 @@ public class ItemChessBoard extends Item
   {
     final int MAXIMUM_NUMBER_OF_COUNTERS = 64;
     this.setMaxStackSize(MAXIMUM_NUMBER_OF_COUNTERS);
-    this.setCreativeTab(CreativeTabs.tabMisc);   // the item will appear on the Miscellaneous tab in creative
+    this.setCreativeTab(CreativeTabs.MISC);   // the item will appear on the Miscellaneous tab in creative
   }
 }

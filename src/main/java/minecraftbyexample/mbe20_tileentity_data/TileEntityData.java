@@ -11,12 +11,13 @@ import net.minecraft.nbt.NBTTagDouble;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
-import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.ITickable;
 import net.minecraft.world.World;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -42,15 +43,16 @@ public class TileEntityData extends TileEntity implements ITickable {
 	//  it uses getDescriptionPacket() and onDataPacket() to do this
 	//  Not really required for this example since we only use the timer on the client, but included anyway for illustration
 	@Override
-	public Packet getDescriptionPacket() {
+	@Nullable
+	public SPacketUpdateTileEntity getUpdatePacket() {
 		NBTTagCompound nbtTagCompound = new NBTTagCompound();
 		writeToNBT(nbtTagCompound);
 		int metadata = getBlockMetadata();
-		return new S35PacketUpdateTileEntity(this.pos, metadata, nbtTagCompound);
+		return new SPacketUpdateTileEntity(this.pos, metadata, nbtTagCompound);
 	}
 
 	@Override
-	public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt) {
+	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
 		readFromNBT(pkt.getNbtCompound());
 	}
 
@@ -60,9 +62,9 @@ public class TileEntityData extends TileEntity implements ITickable {
 	// NBTexplorer is a very useful tool to examine the structure of your NBT saved data and make sure it's correct:
 	//   http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-tools/1262665-nbtexplorer-nbt-editor-for-windows-and-mac
 	@Override
-	public void writeToNBT(NBTTagCompound parentNBTTagCompound)
+	public NBTTagCompound writeToNBT(NBTTagCompound parentNBTTagCompound)
 	{
-		super.writeToNBT(parentNBTTagCompound); // The super call is required to save the tiles location
+		parentNBTTagCompound = super.writeToNBT(parentNBTTagCompound); // The super call is required to save the tiles location
 
 		parentNBTTagCompound.setInteger("ticksLeft", ticksLeftTillDisappear);
 		// alternatively - could use parentNBTTagCompound.setTag("ticksLeft", new NBTTagInt(ticksLeftTillDisappear));
@@ -100,6 +102,8 @@ public class TileEntityData extends TileEntity implements ITickable {
 			}
 		}
 		parentNBTTagCompound.setTag("testDoubleArrayWithNulls", doubleArrayWithNullsNBT);
+
+		return parentNBTTagCompound;
 	}
 
 	// This is where you load the data that you saved in writeToNBT
@@ -189,15 +193,15 @@ public class TileEntityData extends TileEntity implements ITickable {
 // 																		you need to markDirty() to force a resend.  In this case, the client doesn't need to know
 		if (ticksLeftTillDisappear > 0) return;   // not ready yet
 
-		Block [] blockChoices = {Blocks.diamond_block, Blocks.obsidian, Blocks.air, Blocks.tnt, Blocks.yellow_flower, Blocks.sapling, Blocks.water};
+		Block [] blockChoices = {Blocks.DIAMOND_BLOCK, Blocks.OBSIDIAN, Blocks.AIR, Blocks.TNT, Blocks.YELLOW_FLOWER, Blocks.SAPLING, Blocks.WATER};
 		Random random = new Random();
 		Block chosenBlock = blockChoices[random.nextInt(blockChoices.length)];
 	  world.setBlockState(this.pos, chosenBlock.getDefaultState());
-		if (chosenBlock == Blocks.tnt) {
-			Blocks.tnt.onBlockDestroyedByPlayer(world, pos, Blocks.tnt.getDefaultState().withProperty(BlockTNT.EXPLODE, true));
+		if (chosenBlock == Blocks.TNT) {
+			Blocks.TNT.onBlockDestroyedByPlayer(world, pos, Blocks.TNT.getDefaultState().withProperty(BlockTNT.EXPLODE, true));
 			world.setBlockToAir(pos);
-		} else if (chosenBlock == Blocks.sapling) {
-			BlockSapling blockSapling = (BlockSapling)Blocks.sapling;
+		} else if (chosenBlock == Blocks.SAPLING) {
+			BlockSapling blockSapling = (BlockSapling)Blocks.SAPLING;
 			blockSapling.generateTree(world, this.pos, blockSapling.getDefaultState(),random);
 		}
 	}
@@ -205,7 +209,7 @@ public class TileEntityData extends TileEntity implements ITickable {
 	private final int [] testIntArray = {5, 4, 3, 2, 1};
 	private final double [] testDoubleArray = {1, 2, 3, 4, 5, 6};
 	private final Double [] testDoubleArrayWithNulls = {61.1, 62.2, null, 64.4, 65.5};
-	private final ItemStack testItemStack = new ItemStack(Items.cooked_chicken, 23);
+	private final ItemStack testItemStack = new ItemStack(Items.COOKED_CHICKEN, 23);
 	private final String testString = "supermouse";
 	private final BlockPos testBlockPos = new BlockPos(10, 11, 12);
 }

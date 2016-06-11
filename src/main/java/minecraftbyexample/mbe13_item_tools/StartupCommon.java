@@ -41,7 +41,7 @@ public class StartupCommon
 
     final float STONE_HARDNESS = 1.5F;
 
-    blockToolTest = (BlockToolTest)(new BlockToolTest(Material.rock)).setUnlocalizedName("mbe13_item_tools_block");
+    blockToolTest = (BlockToolTest)(new BlockToolTest(Material.ROCK)).setUnlocalizedName("mbe13_item_tools_block");
     blockToolTest.setHardness(STONE_HARDNESS); // can also set in the constructor if desired
     blockToolTest.setHarvestLevel("axe", STONE_HARVEST_LEVEL); // can also set in the constructor if desired
     GameRegistry.registerBlock(blockToolTest, "mbe13_item_tools_block");
@@ -49,10 +49,11 @@ public class StartupCommon
     // each instance of your item should have a name that is unique within your mod.  use lower case.
 
     final float ATTACK_DAMAGE = 1.0F;
+    final float ATTACK_SPEED_IN = 1.0F;
     final Item.ToolMaterial TOOL_MATERIAL = Item.ToolMaterial.STONE;  // affects durability and digging speed
-    final Set EFFECTIVE_ON = Sets.newHashSet(new Block[]{blockToolTest, Blocks.diamond_block});   // set of blocks that tool is effective on,
+    final Set<Block> EFFECTIVE_ON = Sets.newHashSet(blockToolTest, Blocks.DIAMOND_BLOCK);   // set of blocks that tool is effective on,
                                                                                                   //   in addition to the ToolClass criteria
-    itemToolsTest = (ItemToolsTest)(new ItemToolsTest(ATTACK_DAMAGE, TOOL_MATERIAL, EFFECTIVE_ON).setUnlocalizedName("mbe13_item_tools_item"));
+    itemToolsTest = (ItemToolsTest)(new ItemToolsTest(ATTACK_DAMAGE, ATTACK_SPEED_IN, TOOL_MATERIAL, EFFECTIVE_ON).setUnlocalizedName("mbe13_item_tools_item"));
     GameRegistry.registerItem(itemToolsTest, "mbe13_item_tools_item");
 
     itemToolsTest.setHarvestLevel("axe", IRON_HARVEST_LEVEL);

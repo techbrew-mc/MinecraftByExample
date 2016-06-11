@@ -1,7 +1,7 @@
 package minecraftbyexample.mbe06_redstone.input_and_output;
 
 import net.minecraft.block.Block;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import static com.google.common.base.Preconditions.checkArgument;

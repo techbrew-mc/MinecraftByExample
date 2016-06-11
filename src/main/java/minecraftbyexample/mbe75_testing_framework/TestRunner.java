@@ -1,12 +1,12 @@
 package minecraftbyexample.mbe75_testing_framework;
 
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockLadder;
 import net.minecraft.command.CommandClone;
 import net.minecraft.command.server.CommandTeleport;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.BlockPos;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
 
@@ -21,12 +21,12 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public class TestRunner
 {
-  public boolean runServerSideTest(World worldIn, EntityPlayer playerIn, int testNumber)
+  public boolean runServerSideTest(MinecraftServer server, World worldIn, EntityPlayer playerIn, int testNumber)
   {
     boolean success = false;
     switch (testNumber) {
       case 1: {
-        success = test1(worldIn, playerIn);
+        success = test1(server, worldIn, playerIn);
         break;
       }
       default: {
@@ -63,7 +63,7 @@ public class TestRunner
   // testA - replace with wood
   // testB - replace with a glass block
   // testC - replace with diamond block
-  private boolean test1(World worldIn, EntityPlayer playerIn)
+  private boolean test1(MinecraftServer server, World worldIn, EntityPlayer playerIn)
   {
     BlockPos sourceRegionOrigin = new BlockPos(0, 204, 0);
     final int SOURCE_REGION_SIZE_X = 4;
@@ -71,36 +71,36 @@ public class TestRunner
     final int SOURCE_REGION_SIZE_Z = 3;
 
     // put a stone block with attached ladder in the middle of our test region
-    worldIn.setBlockState(sourceRegionOrigin.add(1, 0, 1), Blocks.stone.getDefaultState());
+    worldIn.setBlockState(sourceRegionOrigin.add(1, 0, 1), Blocks.STONE.getDefaultState());
     worldIn.setBlockState(sourceRegionOrigin.add(2, 0, 1),
-                            Blocks.ladder.getDefaultState().withProperty(BlockLadder.FACING, EnumFacing.EAST));
+                            Blocks.LADDER.getDefaultState().withProperty(BlockLadder.FACING, EnumFacing.EAST));
 
     BlockPos testRegionOriginA = new BlockPos(5, 204, 0);
     BlockPos testRegionOriginB = new BlockPos(10, 204, 0);
     BlockPos testRegionOriginC = new BlockPos(15, 204, 0);
 
-    teleportPlayerToTestRegion(playerIn, testRegionOriginA.south(5));  // teleport the player nearby so you can watch
+    teleportPlayerToTestRegion(server, playerIn, testRegionOriginA.south(5));  // teleport the player nearby so you can watch
 
     // copy the test blocks to the destination region
-    copyTestRegion(playerIn, sourceRegionOrigin, testRegionOriginA,
+    copyTestRegion(server, playerIn, sourceRegionOrigin, testRegionOriginA,
                           SOURCE_REGION_SIZE_X, SOURCE_REGION_SIZE_Y, SOURCE_REGION_SIZE_Z);
-    copyTestRegion(playerIn, sourceRegionOrigin, testRegionOriginB,
+    copyTestRegion(server, playerIn, sourceRegionOrigin, testRegionOriginB,
                           SOURCE_REGION_SIZE_X, SOURCE_REGION_SIZE_Y, SOURCE_REGION_SIZE_Z);
-    copyTestRegion(playerIn, sourceRegionOrigin, testRegionOriginC,
+    copyTestRegion(server, playerIn, sourceRegionOrigin, testRegionOriginC,
                           SOURCE_REGION_SIZE_X, SOURCE_REGION_SIZE_Y, SOURCE_REGION_SIZE_Z);
 
     boolean success = true;
     // testA: replace stone with wood; ladder should remain
-    worldIn.setBlockState(testRegionOriginA.add(1, 0, 1), Blocks.log.getDefaultState());
-    success &= worldIn.getBlockState(testRegionOriginA.add(2, 0, 1)).getBlock() == Blocks.ladder;
+    worldIn.setBlockState(testRegionOriginA.add(1, 0, 1), Blocks.LOG.getDefaultState());
+    success &= worldIn.getBlockState(testRegionOriginA.add(2, 0, 1)).getBlock() == Blocks.LADDER;
 
     // testB: replace stone with glass; ladder should be destroyed
-    worldIn.setBlockState(testRegionOriginB.add(1, 0, 1), Blocks.glass.getDefaultState());
-    success &= worldIn.getBlockState(testRegionOriginB.add(2, 0, 1)).getBlock() == Blocks.air;
+    worldIn.setBlockState(testRegionOriginB.add(1, 0, 1), Blocks.GLASS.getDefaultState());
+    success &= worldIn.getBlockState(testRegionOriginB.add(2, 0, 1)).getBlock() == Blocks.AIR;
 
     // testC: replace stone with diamond block; ladder should remain
-    worldIn.setBlockState(testRegionOriginC.add(1, 0, 1), Blocks.diamond_block.getDefaultState());
-    success &= worldIn.getBlockState(testRegionOriginC.add(2, 0, 1)).getBlock() == Blocks.ladder;
+    worldIn.setBlockState(testRegionOriginC.add(1, 0, 1), Blocks.DIAMOND_BLOCK.getDefaultState());
+    success &= worldIn.getBlockState(testRegionOriginC.add(2, 0, 1)).getBlock() == Blocks.LADDER;
 
     return success;
   }
@@ -111,14 +111,14 @@ public class TestRunner
    * @param location
    * @return
    */
-  private boolean teleportPlayerToTestRegion(EntityPlayer playerIn, BlockPos location)
+  private boolean teleportPlayerToTestRegion(MinecraftServer server, EntityPlayer playerIn, BlockPos location)
   {
     String tpArguments = "@p " + location.getX() + " " + location.getY() + " " + location.getZ();
     String[] tpArgumentsArray = tpArguments.split(" ");
 
     CommandTeleport commandTeleport = new CommandTeleport();
     try {
-      commandTeleport.processCommand(playerIn, tpArgumentsArray);
+      commandTeleport.execute(server, playerIn, tpArgumentsArray);
     } catch (Exception e) {
       return false;
     }
@@ -136,7 +136,7 @@ public class TestRunner
    * @param zCount >=1
    * @return true for success, false otherwise
    */
-  private boolean copyTestRegion(EntityPlayer entityPlayer,
+  private boolean copyTestRegion(MinecraftServer server, EntityPlayer entityPlayer,
                                  BlockPos sourceOrigin, BlockPos destOrigin,
                                  int xCount, int yCount, int zCount)
   {
@@ -157,7 +157,7 @@ public class TestRunner
 
     CommandClone commandClone = new CommandClone();
     try {
-      commandClone.processCommand(entityPlayer, args);
+      commandClone.execute(server, entityPlayer, args);
     } catch (Exception e) {
       return false;
     }

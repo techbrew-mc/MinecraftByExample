@@ -1,4 +1,4 @@
-package minecraftbyexample.mbe50_entityfx;
+package minecraftbyexample.mbe50_particle;
 
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.TextureStitchEvent;
@@ -13,6 +13,6 @@ public class TextureStitcherBreathFX
   @SubscribeEvent
   public void stitcherEventPre(TextureStitchEvent.Pre event) {
     ResourceLocation flameRL = new ResourceLocation("minecraftbyexample:entity/flame_fx");
-    event.map.registerSprite(flameRL);
+    event.getMap().registerSprite(flameRL);
   }
 }

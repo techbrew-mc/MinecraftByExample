@@ -1,9 +1,8 @@
 package minecraftbyexample.mbe04_block_smartblockmodel1;
 
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.statemap.StateMapperBase;
-import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.common.MinecraftForge;
@@ -34,16 +33,16 @@ public class StartupClientOnly
     StateMapperBase ignoreState = new StateMapperBase() {
       @Override
       protected ModelResourceLocation getModelResourceLocation(IBlockState iBlockState) {
-        return CamouflageISmartBlockModelFactory.modelResourceLocation;
+        return CamouflageBakedModelFactory.modelResourceLocation;
       }
     };
     ModelLoader.setCustomStateMapper(StartupCommon.blockCamouflage, ignoreState);
 
-    // ModelBakeEvent will be used to add our ISmartBlockModel to the ModelManager's registry (the
+    // ModelBakeEvent will be used to add our IBakedModel to the ModelManager's registry (the
     //  registry used to map all the ModelResourceLocations to IBlockModels).  For the stone example there is a map from
     // ModelResourceLocation("minecraft:granite#normal") to an IBakedModel created from models/block/granite.json.
     // For the camouflage block, it will map from
-    // CamouflageISmartBlockModelFactory.modelResourceLocation to our CamouflageISmartBlockModelFactory instance
+    // CamouflageBakedModelFactory.modelResourceLocation to our CamouflageBakedModelFactory instance
     MinecraftForge.EVENT_BUS.register(ModelBakeEventHandler.instance);
 
     // This is currently necessary in order to make your block render properly when it is an item (i.e. in the inventory

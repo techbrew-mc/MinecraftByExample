@@ -3,7 +3,7 @@ package minecraftbyexample.mbe60_network_messages;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.util.EnumParticleTypes;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
@@ -58,14 +58,14 @@ public class MessageHandlerOnClient implements IMessageHandler<TargetEffectMessa
   }
 
   // This message is called from the Client thread.
-  //   It spawns a number of EntityFX particles at the target location within a short range around the target location
+  //   It spawns a number of Particle particles at the target location within a short range around the target location
   void processMessage(WorldClient worldClient, TargetEffectMessageToClient message)
   {
     Random random = new Random();
     final int NUMBER_OF_PARTICLES = 100;
     final double HORIZONTAL_SPREAD = 1.5;
     for (int i = 0; i < NUMBER_OF_PARTICLES; ++i) {
-      Vec3 targetCoordinates = message.getTargetCoordinates();
+      Vec3d targetCoordinates = message.getTargetCoordinates();
       double spawnXpos = targetCoordinates.xCoord + (2*random.nextDouble() - 1) * HORIZONTAL_SPREAD;
       double spawnYpos = targetCoordinates.yCoord;
       double spawnZpos = targetCoordinates.zCoord + (2*random.nextDouble() - 1) * HORIZONTAL_SPREAD;

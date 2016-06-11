@@ -1,6 +1,6 @@
 package minecraftbyexample.mbe15_item_smartitemmodel;
 
-import net.minecraft.client.resources.model.IBakedModel;
+import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraftforge.client.event.ModelBakeEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -24,12 +24,12 @@ public class ModelBakeEventHandlerMBE15 {
   {
     // Find the existing mapping for ChessboardSmartItemModel - we added it in StartupClientOnly.initClientOnly(), which
     //   caused it to be loaded from resources (model/items/mbe15_item_chessboard.json) just like an ordinary item
-    // Replace the mapping with our ISmartBlockModel, using the existing mapped model as the base for the smart model.
-    Object object =  event.modelRegistry.getObject(ChessboardSmartItemModel.modelResourceLocation);
+    // Replace the mapping with our IBakedModel, using the existing mapped model as the base for the smart model.
+    Object object =  event.getModelRegistry().getObject(ChessboardSmartItemModel.modelResourceLocation);
     if (object instanceof IBakedModel) {
       IBakedModel existingModel = (IBakedModel)object;
       ChessboardSmartItemModel customModel = new ChessboardSmartItemModel(existingModel);
-      event.modelRegistry.putObject(ChessboardSmartItemModel.modelResourceLocation, customModel);
+      event.getModelRegistry().putObject(ChessboardSmartItemModel.modelResourceLocation, customModel);
     }
   }
 }

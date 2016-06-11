@@ -1,17 +1,17 @@
 package minecraftbyexample.mbe04_block_smartblockmodel1;
 
-import net.minecraft.client.resources.model.IBakedModel;
+import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraftforge.client.event.ModelBakeEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
  * Created by TheGreyGhost on 19/04/2015.
  *
- * ModelBakeEvent will be used to add our ISmartBlockModel to the ModelManager's registry (the registry used to map
+ * ModelBakeEvent will be used to add our IBakedModel to the ModelManager's registry (the registry used to map
  *   all the ModelResourceLocations to IBlockModels).  For the example of the stone block, there is a map from
  *  ModelResourceLocation("minecraft:granite#normal") to an IBakedModel created from models/block/granite.json.
  * For the camouflage block, it will map from
- *  CamouflageISmartBlockModelFactory.modelResourceLocation to our CamouflageISmartBlockModelFactory instance
+ *  CamouflageBakedModelFactory.modelResourceLocation to our CamouflageBakedModelFactory instance
  */
 public class ModelBakeEventHandler {
   public static final ModelBakeEventHandler instance = new ModelBakeEventHandler();
@@ -23,14 +23,14 @@ public class ModelBakeEventHandler {
   @SubscribeEvent
   public void onModelBakeEvent(ModelBakeEvent event)
   {
-    // Find the existing mapping for CamouflageISmartBlockModelFactory - it will have been added automatically because
+    // Find the existing mapping for CamouflageBakedModelFactory - it will have been added automatically because
     //  we registered a custom BlockStateMapper for it (using ModelLoader.setCustomStateMapper)
-    // Replace the mapping with our ISmartBlockModel.
-    Object object =  event.modelRegistry.getObject(CamouflageISmartBlockModelFactory.modelResourceLocation);
+    // Replace the mapping with our IBakedModel.
+    Object object =  event.getModelRegistry().getObject(CamouflageBakedModelFactory.modelResourceLocation);
     if (object instanceof IBakedModel) {
       IBakedModel existingModel = (IBakedModel)object;
-      CamouflageISmartBlockModelFactory customModel = new CamouflageISmartBlockModelFactory(existingModel);
-      event.modelRegistry.putObject(CamouflageISmartBlockModelFactory.modelResourceLocation, customModel);
+      CamouflageBakedModelFactory customModel = new CamouflageBakedModelFactory(existingModel);
+      event.getModelRegistry().putObject(CamouflageBakedModelFactory.modelResourceLocation, customModel);
     }
   }
 }

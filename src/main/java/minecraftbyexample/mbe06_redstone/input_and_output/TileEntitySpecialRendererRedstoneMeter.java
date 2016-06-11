@@ -4,11 +4,9 @@ import minecraftbyexample.usefultools.UsefulFunctions;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.renderer.vertex.VertexFormat;
-import net.minecraft.client.renderer.vertex.VertexFormatElement;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import org.lwjgl.opengl.GL11;
@@ -125,7 +123,7 @@ public class TileEntitySpecialRendererRedstoneMeter extends TileEntitySpecialRen
                                                       //  we need to rotate clockwise but rotate expects anticlockwise
 
       Tessellator tessellator = Tessellator.getInstance();
-      WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+      VertexBuffer worldrenderer = tessellator.getBuffer();
 //      this.bindTexture(needleTexture);         // we don't need a texture for the needle appearance - we're just using
                                                  //  solid colour
 
@@ -158,7 +156,7 @@ public class TileEntitySpecialRendererRedstoneMeter extends TileEntitySpecialRen
   }
 
   // add the vertices for drawing the needle.  Normally you would use a model loader for a more complicated shape
-  private void addNeedleVertices(WorldRenderer worldrenderer) {
+  private void addNeedleVertices(VertexBuffer worldrenderer) {
     // needle is a triangle pointing down, the rotation spindle is at [0,0,0]
     // anticlockwise vertices -> it is facing south
 

@@ -26,8 +26,8 @@ Blocks
   MBE01 - a simple cube
   MBE02 - a block with a more complicated shape
   MBE03 - a block (coloured signpost) with multiple variants- four colours, can be placed facing in four directions
-  MBE04 - a camouflage ("secret door") block which copies the appearance of adjacent blocks - uses ISmartBlockModel
-  MBE05 - a 3D web which joins to neighbours in all six directions - uses ISmartBlockModel and ICustomModelLoader
+  MBE04 - a camouflage ("secret door") block which copies the appearance of adjacent blocks - uses IBakedModel
+  MBE05 - a 3D web which joins to neighbours in all six directions - uses IBakedModel and ICustomModelLoader
   MBE06 - several different types of block which use redstone
   MBE08 - how to add a creative tab for organising your custom blocks / items
 
@@ -53,8 +53,8 @@ Recipes (Crafting and Furnaces)
 HeadsUpDisplay - overlays
   MBE40 - simple customisations of the heads up display (hotbar, health meter)
 
-EntityFX - particle effects
-  MBE50 - shows how to use vanilla EntityFX; also how to generate your own custom EntityFX
+Particle - particle effects
+  MBE50 - shows how to use vanilla Particle; also how to generate your own custom Particle
 
 Network
   MBE60 - send network messages between client and server

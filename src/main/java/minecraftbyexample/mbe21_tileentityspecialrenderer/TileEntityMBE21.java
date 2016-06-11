@@ -3,9 +3,9 @@ package minecraftbyexample.mbe21_tileentityspecialrenderer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
-import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -63,27 +63,28 @@ public class TileEntityMBE21 extends TileEntity {
 	//  the player will never notice the difference and the client<-->server synchronisation lag will make it
 	//  inaccurate anyway
 	@Override
-	public Packet getDescriptionPacket() {
+	public SPacketUpdateTileEntity getUpdatePacket() {
 		NBTTagCompound nbtTagCompound = new NBTTagCompound();
 		writeToNBT(nbtTagCompound);
 		int metadata = getBlockMetadata();
-		return new S35PacketUpdateTileEntity(this.pos, metadata, nbtTagCompound);
+		return new SPacketUpdateTileEntity(this.pos, metadata, nbtTagCompound);
 	}
 
 	@Override
-	public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt) {
+	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
 		readFromNBT(pkt.getNbtCompound());
 	}
 
 	// This is where you save any data that you don't want to lose when the tile entity unloads
 	// In this case, we only need to store the gem colour.  For examples with other types of data, see MBE20
 	@Override
-	public void writeToNBT(NBTTagCompound parentNBTTagCompound)
+	public NBTTagCompound writeToNBT(NBTTagCompound parentNBTTagCompound)
 	{
-		super.writeToNBT(parentNBTTagCompound); // The super call is required to save the tiles location
+		parentNBTTagCompound = super.writeToNBT(parentNBTTagCompound); // The super call is required to save the tiles location
 		if (gemColour != INVALID_COLOR) {
 			parentNBTTagCompound.setInteger("gemColour", gemColour.getRGB());
 		}
+		return parentNBTTagCompound;
 	}
 
 	// This is where you load the data that you saved in writeToNBT

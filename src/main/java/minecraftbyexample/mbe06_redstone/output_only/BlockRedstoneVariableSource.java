@@ -4,17 +4,22 @@ import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyInteger;
-import net.minecraft.block.state.BlockState;
+import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.BlockPos;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.util.EnumBlockRenderType;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumWorldBlockLayer;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+
+import javax.annotation.Nullable;
 
 /**
  * User: The Grey Ghost
@@ -32,8 +37,8 @@ public class BlockRedstoneVariableSource extends Block
 {
   public BlockRedstoneVariableSource()
   {
-    super(Material.rock);
-    this.setCreativeTab(CreativeTabs.tabBlock);   // the block will appear on the Blocks tab in creative
+    super(Material.ROCK);
+    this.setCreativeTab(CreativeTabs.BUILDING_BLOCKS);   // the block will appear on the Blocks tab in creative
   }
 
   //-------------------- methods related to redstone
@@ -43,23 +48,23 @@ public class BlockRedstoneVariableSource extends Block
    * @return
    */
   @Override
-  public boolean canProvidePower()
+  public boolean canProvidePower(IBlockState state)
   {
     return true;
   }
 
   /** How much weak power does this block provide to the adjacent block?
    * See http://greyminecraftcoder.blogspot.com.au/2015/11/redstone.html for more information
-   * @param worldIn
+   * @param blockAccess
    * @param pos the position of this block
-   * @param state the blockstate of this block
+   * @param blockState the blockstate of this block
    * @param side the side of the block - eg EAST means that this is to the EAST of the adjacent block.
    * @return The power provided [0 - 15]
    */
   @Override
-  public int getWeakPower(IBlockAccess worldIn, BlockPos pos, IBlockState state, EnumFacing side)
+  public int getWeakPower(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side)
   {
-    Integer powerIndex = (Integer)state.getValue(POWER_INDEX);
+    Integer powerIndex = blockState.getValue(POWER_INDEX);
 
     if (powerIndex < 0) {
       powerIndex = 0;
@@ -71,7 +76,7 @@ public class BlockRedstoneVariableSource extends Block
 
   // The variable source block does not provide strong power.  See BlockButton for a example of a block which does.
   @Override
-  public int getStrongPower(IBlockAccess worldIn, BlockPos pos, IBlockState state, EnumFacing side)
+  public int getStrongPower(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side)
   {
     return 0;
   }
@@ -111,15 +116,15 @@ public class BlockRedstoneVariableSource extends Block
   // necessary to define which properties your blocks use
   // will also affect the variants listed in the blockstates model file
   @Override
-  protected BlockState createBlockState()
+  protected BlockStateContainer createBlockState()
   {
-    return new BlockState(this, new IProperty[] {POWER_INDEX});
+    return new BlockStateContainer(this, new IProperty[] {POWER_INDEX});
   }
 
   // Every time the player right-clicks, cycle through to the next power setting.
   // Need to trigger an update and notify all neighbours to make sure the new power setting takes effect.
   @Override
-  public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumFacing side, float hitX, float hitY, float hitZ)
+  public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, @Nullable ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ)
   {
     if (!playerIn.capabilities.allowEdit) {
       return false;
@@ -145,15 +150,15 @@ public class BlockRedstoneVariableSource extends Block
 
   // the block will render in the SOLID layer.  See http://greyminecraftcoder.blogspot.co.at/2014/12/block-rendering-18.html for more information.
   @SideOnly(Side.CLIENT)
-  public EnumWorldBlockLayer getBlockLayer()
+  public BlockRenderLayer getBlockLayer()
   {
-    return EnumWorldBlockLayer.SOLID;
+    return BlockRenderLayer.SOLID;
   }
 
   // used by the renderer to control lighting and visibility of other blocks.
   // set to false because this block doesn't fill the entire 1x1x1 space
   @Override
-  public boolean isOpaqueCube() {
+  public boolean isOpaqueCube(IBlockState state) {
     return false;
   }
 
@@ -161,14 +166,14 @@ public class BlockRedstoneVariableSource extends Block
   // (eg) wall or fence to control whether the fence joins itself to this block
   // set to false because this block doesn't fill the entire 1x1x1 space
   @Override
-  public boolean isFullCube() {
+  public boolean isFullBlock(IBlockState state) {
     return false;
   }
 
   // render using a BakedModel (mbe06_block_redstone_variable_source.json --> mbe06_block_variable_source_model.json)
   // not strictly required because the default (super method) is 3.
   @Override
-  public int getRenderType() {
-    return 3;
+  public EnumBlockRenderType getRenderType(IBlockState state) {
+    return EnumBlockRenderType.MODEL;
   }
 }

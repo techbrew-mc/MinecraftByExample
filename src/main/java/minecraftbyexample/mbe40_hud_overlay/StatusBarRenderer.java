@@ -5,6 +5,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.MobEffects;
+import net.minecraft.potion.Potion;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import org.lwjgl.opengl.GL11;
@@ -148,21 +150,18 @@ public class StatusBarRenderer extends Gui {
            *   
            * For a more comprehensive list of status effects, see http://minecraft.gamepedia.com/Status_effect
            */
-    final int WITHER_EFFECT_ID = 20;
-    final int POISON_EFFECT_ID = 19;
-    final int REGEN_EFFECT_ID = 10;
     final int NORMAL_TEXTURE_U = BAR_WIDTH;     // red texels  - see mbe40_hud_overlay.png
     final int REGEN_TEXTURE_U = BAR_WIDTH + 1;  //  green texels
     final int POISON_TEXTURE_U = BAR_WIDTH + 2;  // black texels
     final int WITHER_TEXTURE_U = BAR_WIDTH + 3;  // brown texels
 
-    if (player.isPotionActive(WITHER_EFFECT_ID)) {
+    if (player.isPotionActive(MobEffects.WITHER)) {
       drawTexturedModalRect(0, 0, WITHER_TEXTURE_U, 0, 1, BAR_HEIGHT - 2);
     }
-    else if (player.isPotionActive(POISON_EFFECT_ID)) {
+    else if (player.isPotionActive(MobEffects.POISON)) {
       drawTexturedModalRect(0, 0, POISON_TEXTURE_U, 0, 1, BAR_HEIGHT - 2);
     }
-    else if (player.isPotionActive(REGEN_EFFECT_ID)) {
+    else if (player.isPotionActive(MobEffects.REGENERATION)) {
       drawTexturedModalRect(0, 0, REGEN_TEXTURE_U, 0, 1, BAR_HEIGHT - 2);
     }
     else {

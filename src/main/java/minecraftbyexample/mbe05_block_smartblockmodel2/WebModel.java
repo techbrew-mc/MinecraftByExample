@@ -2,14 +2,14 @@ package minecraftbyexample.mbe05_block_smartblockmodel2;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
+import net.minecraft.client.renderer.block.model.IBakedModel;
+import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.vertex.VertexFormat;
-import net.minecraft.client.resources.model.IBakedModel;
-import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.model.IFlexibleBakedModel;
+
 import net.minecraftforge.client.model.IModel;
-import net.minecraftforge.client.model.IModelState;
+import net.minecraftforge.common.model.IModelState;
 import net.minecraftforge.client.model.ModelLoaderRegistry;
 
 import java.io.IOException;
@@ -54,7 +54,7 @@ public class WebModel implements IModel {
 
     //  Bake the subcomponents into a CompositeModel
     @Override
-    public IFlexibleBakedModel bake(IModelState state, VertexFormat format, Function<ResourceLocation, TextureAtlasSprite> bakedTextureGetter)  {
+    public IBakedModel bake(IModelState state, VertexFormat format, Function<ResourceLocation, TextureAtlasSprite> bakedTextureGetter)  {
       try {
         IModel subComponent = ModelLoaderRegistry.getModel(MODEL_CORE);
         IBakedModel bakedModelCore = subComponent.bake(state, format, bakedTextureGetter);
@@ -79,8 +79,8 @@ public class WebModel implements IModel {
 
         return new CompositeModel(bakedModelCore, bakedModelUp, bakedModelDown,
                                          bakedModelWest, bakedModelEast, bakedModelNorth, bakedModelSouth);
-      } catch (IOException ioe) {
-        System.err.println("WebModel.bake() failed due to exception:" + ioe);
+      } catch (Exception e) {
+        System.err.println("WebModel.bake() failed due to exception:" + e);
         return ModelLoaderRegistry.getMissingModel().bake(state, format, bakedTextureGetter);
       }
     }

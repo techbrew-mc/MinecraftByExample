@@ -2,23 +2,21 @@ package minecraftbyexample.mbe05_block_smartblockmodel2;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
+import net.minecraft.client.renderer.block.model.*;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.vertex.VertexFormat;
-import net.minecraft.client.resources.model.IBakedModel;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.client.model.Attributes;
-import net.minecraftforge.client.model.IFlexibleBakedModel;
-import net.minecraftforge.client.model.ISmartBlockModel;
+import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraftforge.common.property.IExtendedBlockState;
 
+import javax.annotation.Nullable;
 import java.util.LinkedList;
 import java.util.List;
 
 /**
  * Created by TheGreyGhost on 22/04/2015.
- * CompositeModel is the ISmartBlockModel used to create a custom IBakedModel based on the web block's IBlockState
+ * CompositeModel is the IBakedModel used to create a custom IBakedModel based on the web block's IBlockState
  * The Model is constructed from the various models corresponding to the subcomponents:
  * 1) "core" for the solid core in the middle of the web
  * 2) up, down, north, south, east, west for each "stem" that extends from the core in the centre to the edge of the block
@@ -26,10 +24,10 @@ import java.util.List;
  * An IBakedModel is just a list of quads; the composite model is created by concatenating the quads from the relevant
  *   subcomponents.
  *
- *   BEWARE! Rendering is multithreaded so your ISmartBlockModel must be thread-safe, preferably immutable.
+ *   BEWARE! Rendering is multithreaded so your IBakedModel must be thread-safe, preferably immutable.
 
  */
-public class CompositeModel implements IFlexibleBakedModel, ISmartBlockModel {
+public class CompositeModel implements IBakedModel {
 
   public CompositeModel(IBakedModel i_modelCore, IBakedModel i_modelUp, IBakedModel i_modelDown,
                         IBakedModel i_modelWest, IBakedModel i_modelEast,
@@ -51,6 +49,41 @@ public class CompositeModel implements IFlexibleBakedModel, ISmartBlockModel {
   private IBakedModel modelEast;
   private IBakedModel modelNorth;
   private IBakedModel modelSouth;
+
+  @Override
+  public List<BakedQuad> getQuads(@Nullable IBlockState state, @Nullable EnumFacing side, long rand)
+  {
+    List<BakedQuad> allGeneralQuads = new LinkedList<BakedQuad>();
+    allGeneralQuads.addAll(modelCore.getQuads(state, side, rand));
+    if(side!=null)
+    {
+      if (side == EnumFacing.UP)
+      {
+        allGeneralQuads.addAll(modelUp.getQuads(state, side, rand));
+      }
+      if (side == EnumFacing.DOWN)
+      {
+        allGeneralQuads.addAll(modelDown.getQuads(state, side, rand));
+      }
+      if (side == EnumFacing.WEST)
+      {
+        allGeneralQuads.addAll(modelWest.getQuads(state, side, rand));
+      }
+      if (side == EnumFacing.EAST)
+      {
+        allGeneralQuads.addAll(modelEast.getQuads(state, side, rand));
+      }
+      if (side == EnumFacing.NORTH)
+      {
+        allGeneralQuads.addAll(modelNorth.getQuads(state, side, rand));
+      }
+      if (side == EnumFacing.SOUTH)
+      {
+        allGeneralQuads.addAll(modelSouth.getQuads(state, side, rand));
+      }
+    }
+    return allGeneralQuads;
+  }
 
   @Override
   public boolean isAmbientOcclusion() {
@@ -82,24 +115,30 @@ public class CompositeModel implements IFlexibleBakedModel, ISmartBlockModel {
   }
 
   @Override
-  public List<BakedQuad> getFaceQuads(EnumFacing side) {
-    //This should never be called!  The handleBlockState returns an AssembledBakedModel instead of CompositeModel
-    throw new UnsupportedOperationException();
+  public ItemOverrideList getOverrides()
+  {
+    return null;
   }
 
-  @Override
-  public List<BakedQuad> getGeneralQuads() {
-    //This should never be called!  The handleBlockState returns an AssembledBakedModel instead of CompositeModel
-    throw new UnsupportedOperationException();
-  }
-
-  // returns the vertex format for this model (each vertex in the list of quads can have a variety of information
-  //   associated with it - for example, not just position and texture information, but also colour, world brightness,
-  //   etc.)  Just use DEFAULT_BAKED_FORMAT unless you really know what you're doing...
-  @Override
-  public VertexFormat getFormat() {
-    return Attributes.DEFAULT_BAKED_FORMAT;
-  }
+//  @Override
+//  public List<BakedQuad> getFaceQuads(EnumFacing side) {
+//    //This should never be called!  The handleBlockState returns an AssembledBakedModel instead of CompositeModel
+//    throw new UnsupportedOperationException();
+//  }
+//
+//  @Override
+//  public List<BakedQuad> getGeneralQuads() {
+//    //This should never be called!  The handleBlockState returns an AssembledBakedModel instead of CompositeModel
+//    throw new UnsupportedOperationException();
+//  }
+//
+//  // returns the vertex format for this model (each vertex in the list of quads can have a variety of information
+//  //   associated with it - for example, not just position and texture information, but also colour, world brightness,
+//  //   etc.)  Just use DEFAULT_BAKED_FORMAT unless you really know what you're doing...
+//  @Override
+//  public VertexFormat getFormat() {
+//    return Attributes.DEFAULT_BAKED_FORMAT;
+//  }
 
   // This method is used to create a suitable IBakedModel based on the IBlockState of the block being rendered.
   // If IBlockState is an instance of IExtendedBlockState, you can use it to pass in any information you want.
@@ -108,7 +147,8 @@ public class CompositeModel implements IFlexibleBakedModel, ISmartBlockModel {
   // But you can't just set some member variables and return "this", because the multiple rendering threads may
   //   cause the model in one thread to be overwritten by the other thread.  Thanks to Herbix for pointing this out.
 
-  @Override
+  // TODO 1.9.4
+  //@Override
   public IBakedModel handleBlockState(IBlockState iBlockState) {
     if (iBlockState instanceof IExtendedBlockState) {
       IExtendedBlockState iExtendedBlockState = (IExtendedBlockState) iBlockState;
@@ -124,6 +164,13 @@ public class CompositeModel implements IFlexibleBakedModel, ISmartBlockModel {
     public AssembledBakedModel()
     {
       // default is all false
+    }
+
+    @Override
+    public ItemOverrideList getOverrides()
+    {
+      // TODO
+      return null;
     }
 
     public AssembledBakedModel(IExtendedBlockState iExtendedBlockState)
@@ -164,54 +211,29 @@ public class CompositeModel implements IFlexibleBakedModel, ISmartBlockModel {
     // quads that correspond to faces of the cube (up, down, north, south, east, west).  A face may be hidden if
     //   the model's 'cullface' flag is true and it touches the adjacent block
     @Override
-    public List<BakedQuad> getFaceQuads(EnumFacing side) {
+    public List<BakedQuad> getQuads(@Nullable IBlockState state, @Nullable EnumFacing side, long rand)
+    {
       List<BakedQuad> allFaceQuads = new LinkedList<BakedQuad>();
-      allFaceQuads.addAll(modelCore.getFaceQuads(side));
+      allFaceQuads.addAll(modelCore.getQuads(state, side, rand));
       if (up) {
-        allFaceQuads.addAll(modelUp.getFaceQuads(side));
+        allFaceQuads.addAll(modelUp.getQuads(state, side, rand));
       }
       if (down) {
-        allFaceQuads.addAll(modelDown.getFaceQuads(side));
+        allFaceQuads.addAll(modelDown.getQuads(state, side, rand));
       }
       if (west) {
-        allFaceQuads.addAll(modelWest.getFaceQuads(side));
+        allFaceQuads.addAll(modelWest.getQuads(state, side, rand));
       }
       if (east) {
-        allFaceQuads.addAll(modelEast.getFaceQuads(side));
+        allFaceQuads.addAll(modelEast.getQuads(state, side, rand));
       }
       if (north) {
-        allFaceQuads.addAll(modelNorth.getFaceQuads(side));
+        allFaceQuads.addAll(modelNorth.getQuads(state, side, rand));
       }
       if (south) {
-        allFaceQuads.addAll(modelSouth.getFaceQuads(side));
+        allFaceQuads.addAll(modelSouth.getQuads(state, side, rand));
       }
       return allFaceQuads;
-    }
-
-    // general quads that can face in any direction
-    @Override
-    public List<BakedQuad> getGeneralQuads() {
-      List<BakedQuad> allGeneralQuads = new LinkedList<BakedQuad>();
-      allGeneralQuads.addAll(modelCore.getGeneralQuads());
-      if (up) {
-        allGeneralQuads.addAll(modelUp.getGeneralQuads());
-      }
-      if (down) {
-        allGeneralQuads.addAll(modelDown.getGeneralQuads());
-      }
-      if (west) {
-        allGeneralQuads.addAll(modelWest.getGeneralQuads());
-      }
-      if (east) {
-        allGeneralQuads.addAll(modelEast.getGeneralQuads());
-      }
-      if (north) {
-        allGeneralQuads.addAll(modelNorth.getGeneralQuads());
-      }
-      if (south) {
-        allGeneralQuads.addAll(modelSouth.getGeneralQuads());
-      }
-      return allGeneralQuads;
     }
 
     @Override

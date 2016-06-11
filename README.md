@@ -23,8 +23,8 @@ If you want more information and explanatory text about the concepts, the follow
   - [MBE01][01] - a simple cube
   - [MBE02][02] - a block with a more complicated shape
   - [MBE03][03] - a block (coloured signpost) with multiple variants- four colours, can be placed facing in four directions
-  - [MBE04][04] - a camouflage ("secret door") block which copies the appearance of adjacent blocks - uses ISmartBlockModel
-  - [MBE05][05] - a 3D web which joins to neighbours in all six directions - uses ISmartBlockModel and ICustomModelLoader
+  - [MBE04][04] - a camouflage ("secret door") block which copies the appearance of adjacent blocks - uses IBakedModel
+  - [MBE05][05] - a 3D web which joins to neighbours in all six directions - uses IBakedModel and ICustomModelLoader
   - [MBE06][06] - several different types of block which use redstone
   - [MBE08][08] - how to add a creative tab for organising your custom blocks / items
 
@@ -50,8 +50,8 @@ If you want more information and explanatory text about the concepts, the follow
 ### Heads Up Display/Overlays
   - [MBE40][40] - simple customisations of the heads up display (hotbar, health meter)
 
-### EntityFX - particle effects
-  - [MBE50][50] - shows how to use vanilla EntityFX; also how to generate your own custom EntityFX
+### Particle - particle effects
+  - [MBE50][50] - shows how to use vanilla Particle; also how to generate your own custom Particle
 
 ### Network
   - [MBE60][60] - send network messages between client and server
@@ -118,7 +118,7 @@ Check out [this video][forge_installation] for more help installing Forge.
 
 [40]: https://github.com/TheGreyGhost/MinecraftByExample/tree/master/src/main/java/minecraftbyexample/mbe40_hud_overlay
 
-[50]: https://github.com/TheGreyGhost/MinecraftByExample/tree/master/src/main/java/minecraftbyexample/mbe50_entityfx
+[50]: https://github.com/TheGreyGhost/MinecraftByExample/tree/master/src/main/java/minecraftbyexample/mbe50_particle
 
 [60]: https://github.com/TheGreyGhost/MinecraftByExample/tree/master/src/main/java/minecraftbyexample/mbe60_network_messages
 

@@ -50,7 +50,7 @@ public class StartupCommon
       @Override
       @SideOnly(Side.CLIENT)
       public Item getTabIconItem() {
-        return Items.gold_nugget;
+        return Items.GOLD_NUGGET;
       }
     };
 

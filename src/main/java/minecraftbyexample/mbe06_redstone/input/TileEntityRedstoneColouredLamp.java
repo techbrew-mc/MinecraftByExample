@@ -3,15 +3,10 @@ package minecraftbyexample.mbe06_redstone.input;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
-import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ITickable;
 import net.minecraft.world.EnumSkyBlock;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
-
-import java.awt.*;
 
 /**
  * This is a simple tile entity which stores the current lamp colour
@@ -35,7 +30,7 @@ public class TileEntityRedstoneColouredLamp extends TileEntity implements ITicka
   public void update()
   {
     // For some reason, the colour and lighting don't always automatically update just in response to the
-    //          worldIn.markBlockForUpdate(pos);  on the server in onNeighborBlockChange().
+    //          worldIn.markBlockForUpdate(pos);  on the server in neighborChanged().
     // So force the block to re-render when we detect a colour change, otherwise the change in
     //   state will not always be visible.  Likewise, we need to force a lighting recalculation.
     // The block update (for renderer) is only required on client side, but the lighting is required on both, since
@@ -44,7 +39,7 @@ public class TileEntityRedstoneColouredLamp extends TileEntity implements ITicka
     if (previousRGBcolor != currentRGBcolour) {
       previousRGBcolor = currentRGBcolour;
       if (worldObj.isRemote) {
-        worldObj.markBlockForUpdate(pos);
+        worldObj.markBlockRangeForRenderUpdate(pos, pos);
       }
       worldObj.checkLightFor(EnumSkyBlock.BLOCK, pos);
     }
@@ -54,15 +49,15 @@ public class TileEntityRedstoneColouredLamp extends TileEntity implements ITicka
 	// When the world loads from disk, or when the block is updated, the server needs to send the TileEntity information to the client
 	//  it uses getDescriptionPacket() and onDataPacket() to do this
 	@Override
-	public Packet getDescriptionPacket() {
+	public SPacketUpdateTileEntity getUpdatePacket() {
 		NBTTagCompound nbtTagCompound = new NBTTagCompound();
 		writeToNBT(nbtTagCompound);
 		int metadata = getBlockMetadata();
-		return new S35PacketUpdateTileEntity(this.pos, metadata, nbtTagCompound);
+		return new SPacketUpdateTileEntity(this.pos, metadata, nbtTagCompound);
 	}
 
 	@Override
-	public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt) {
+	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
 		readFromNBT(pkt.getNbtCompound());
 	}
 
@@ -70,10 +65,11 @@ public class TileEntityRedstoneColouredLamp extends TileEntity implements ITicka
 	//  - you don't want to lose when the tile entity unloads
   //  - you want to transmit to the client
 	@Override
-	public void writeToNBT(NBTTagCompound parentNBTTagCompound)
+	public NBTTagCompound writeToNBT(NBTTagCompound parentNBTTagCompound)
 	{
-		super.writeToNBT(parentNBTTagCompound); // The super call is required to save the tiles location
-  	parentNBTTagCompound.setInteger("rgb_colour", rgbColour);
+		parentNBTTagCompound = super.writeToNBT(parentNBTTagCompound); // The super call is required to save the tiles location
+  		parentNBTTagCompound.setInteger("rgb_colour", rgbColour);
+		return parentNBTTagCompound;
 	}
 
 	// This is where you load the data that you saved in writeToNBT

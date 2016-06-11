@@ -1,7 +1,7 @@
 package minecraftbyexample.mbe60_network_messages;
 
 import io.netty.buffer.ByteBuf;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 
 /**
@@ -23,13 +23,13 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
  */
 public class TargetEffectMessageToClient implements IMessage
 {
-  public TargetEffectMessageToClient(Vec3 i_targetCoordinates)
+  public TargetEffectMessageToClient(Vec3d i_targetCoordinates)
   {
     targetCoordinates = i_targetCoordinates;
     messageIsValid = true;
   }
 
-  public Vec3 getTargetCoordinates() {
+  public Vec3d getTargetCoordinates() {
     return targetCoordinates;
   }
 
@@ -55,7 +55,7 @@ public class TargetEffectMessageToClient implements IMessage
       double x = buf.readDouble();
       double y = buf.readDouble();
       double z = buf.readDouble();
-      targetCoordinates = new Vec3(x, y, z);
+      targetCoordinates = new Vec3d(x, y, z);
 
       // these methods may also be of use for your code:
       // for Itemstacks - ByteBufUtils.readItemStack()
@@ -95,6 +95,6 @@ public class TargetEffectMessageToClient implements IMessage
     return "TargetEffectMessageToClient[targetCoordinates=" + String.valueOf(targetCoordinates) + "]";
   }
 
-  private Vec3 targetCoordinates;
+  private Vec3d targetCoordinates;
   private boolean messageIsValid;
 }

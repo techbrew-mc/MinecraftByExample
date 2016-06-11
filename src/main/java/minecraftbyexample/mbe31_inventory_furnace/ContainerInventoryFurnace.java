@@ -3,7 +3,7 @@ package minecraftbyexample.mbe31_inventory_furnace;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
-import net.minecraft.inventory.ICrafting;
+import net.minecraft.inventory.IContainerListener;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
@@ -195,12 +195,12 @@ public class ContainerInventoryFurnace extends Container {
 		}
 
 		// go through the list of crafters (players using this container) and update them if necessary
-		for (int i = 0; i < this.crafters.size(); ++i) {
-			ICrafting icrafting = (ICrafting)this.crafters.get(i);
+		for (int i = 0; i < this.listeners.size(); ++i) {
+			IContainerListener IContainerListener = (IContainerListener)this.listeners.get(i);
 			for (int fieldID = 0; fieldID < tileInventoryFurnace.getFieldCount(); ++fieldID) {
 				if (fieldHasChanged[fieldID]) {
 					// Note that although sendProgressBarUpdate takes 2 ints on a server these are truncated to shorts
-					icrafting.sendProgressBarUpdate(this, fieldID, cachedFields[fieldID]);
+					IContainerListener.sendProgressBarUpdate(this, fieldID, cachedFields[fieldID]);
 				}
 			}
 		}

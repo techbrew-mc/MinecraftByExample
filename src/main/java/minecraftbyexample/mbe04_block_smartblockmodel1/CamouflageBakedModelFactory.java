@@ -4,24 +4,22 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockModelShapes;
 import net.minecraft.client.renderer.BlockRendererDispatcher;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
+import net.minecraft.client.renderer.block.model.*;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.IBakedModel;
-import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.EnumFacing;
-import net.minecraftforge.client.model.ISmartBlockModel;
 import net.minecraftforge.common.property.IExtendedBlockState;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
  * Created by TheGreyGhost on 19/04/2015.
  * This class is used to customise the rendering of the camouflage block, based on the block it is copying.
  */
-public class CamouflageISmartBlockModelFactory implements ISmartBlockModel {
+public class CamouflageBakedModelFactory implements IBakedModel {
 
-  public CamouflageISmartBlockModelFactory(IBakedModel unCamouflagedModel)
+  public CamouflageBakedModelFactory(IBakedModel unCamouflagedModel)
   {
     modelWhenNotCamouflaged = unCamouflagedModel;
   }
@@ -35,19 +33,19 @@ public class CamouflageISmartBlockModelFactory implements ISmartBlockModel {
 
   // This method is used to create a suitable IBakedModel based on the IBlockState of the block being rendered.
   // If IBlockState is an instance of IExtendedBlockState, you can use it to pass in any information you want.
-  // Some folks return a new instance of the same ISmartBlockModel; I think it is more logical to return a different
-  //   class which implements IBakedModel instead of ISmartBlockModel, but it's a matter of taste.
-  //  BEWARE! Rendering is multithreaded so your ISmartBlockModel must be thread-safe, preferably immutable.
+  // Some folks return a new instance of the same IBakedModel; I think it is more logical to return a different
+  //   class which implements IBakedModel instead of IBakedModel, but it's a matter of taste.
+  //  BEWARE! Rendering is multithreaded so your IBakedModel must be thread-safe, preferably immutable.
   @Override
-  public IBakedModel handleBlockState(IBlockState iBlockState)
+  public List<BakedQuad> getQuads(@Nullable IBlockState state, @Nullable EnumFacing side, long rand)
   {
     IBakedModel retval = modelWhenNotCamouflaged;  // default
-    IBlockState UNCAMOUFLAGED_BLOCK = Blocks.air.getDefaultState();
+    IBlockState UNCAMOUFLAGED_BLOCK = Blocks.AIR.getDefaultState();
 
     // Extract the block to be copied from the IExtendedBlockState, previously set by Block.getExtendedState()
     // If the block is null, the block is not camouflaged so use the uncamouflaged model.
-    if (iBlockState instanceof IExtendedBlockState) {
-      IExtendedBlockState iExtendedBlockState = (IExtendedBlockState) iBlockState;
+    if (state instanceof IExtendedBlockState) {
+      IExtendedBlockState iExtendedBlockState = (IExtendedBlockState) state;
       IBlockState copiedBlockIBlockState = iExtendedBlockState.getValue(BlockCamouflage.COPIEDBLOCK);
 
       if (copiedBlockIBlockState != UNCAMOUFLAGED_BLOCK) {
@@ -55,14 +53,13 @@ public class CamouflageISmartBlockModelFactory implements ISmartBlockModel {
         Minecraft mc = Minecraft.getMinecraft();
         BlockRendererDispatcher blockRendererDispatcher = mc.getBlockRendererDispatcher();
         BlockModelShapes blockModelShapes = blockRendererDispatcher.getBlockModelShapes();
-        IBakedModel copiedBlockModel = blockModelShapes.getModelForState(copiedBlockIBlockState);
-        if (copiedBlockModel instanceof ISmartBlockModel) {
-          copiedBlockModel = ((ISmartBlockModel) copiedBlockModel).handleBlockState(copiedBlockIBlockState);
-        }
-        retval = copiedBlockModel;
+        retval = blockModelShapes.getModelForState(copiedBlockIBlockState);
+        // TODO:  Confirm this is the desired behavior in 1.9.4
+        return retval.getQuads(copiedBlockIBlockState, side, rand);
       }
     }
-    return retval;
+    // TODO:  Confirm this is the desired behavior in 1.9.4
+    return retval.getQuads(state, side, rand);
   }
 
   private IBakedModel modelWhenNotCamouflaged;
@@ -74,18 +71,8 @@ public class CamouflageISmartBlockModelFactory implements ISmartBlockModel {
     return modelWhenNotCamouflaged.getParticleTexture();
   }
 
-  // The methods below are all unused for CamouflageISmartBlockModelFactory because we always return a vanilla model
+  // The methods below are all unused for CamouflageBakedModelFactory because we always return a vanilla model
   //  from handleBlockState.
-
-  @Override
-  public List getFaceQuads(EnumFacing p_177551_1_) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public List getGeneralQuads() {
-    throw new UnsupportedOperationException();
-  }
 
   @Override
   public boolean isAmbientOcclusion() {
@@ -105,6 +92,12 @@ public class CamouflageISmartBlockModelFactory implements ISmartBlockModel {
   @Override
   public ItemCameraTransforms getItemCameraTransforms() {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public ItemOverrideList getOverrides()
+  {
+    return null;
   }
 
 }

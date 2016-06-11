@@ -6,9 +6,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.IChatComponent;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.ITextComponent;
 
 import java.util.Arrays;
 
@@ -104,9 +104,9 @@ public class TileEntityInventoryBasic extends TileEntity implements IInventory {
 	// This is where you save any data that you don't want to lose when the tile entity unloads
 	// In this case, it saves the itemstacks stored in the container
 	@Override
-	public void writeToNBT(NBTTagCompound parentNBTTagCompound)
+	public NBTTagCompound writeToNBT(NBTTagCompound parentNBTTagCompound)
 	{
-		super.writeToNBT(parentNBTTagCompound); // The super call is required to save and load the tileEntity's location
+		parentNBTTagCompound = super.writeToNBT(parentNBTTagCompound); // The super call is required to save and load the tileEntity's location
 
 		// to use an analogy with Java, this code generates an array of hashmaps
 		// The itemStack in each slot is converted to an NBTTagCompound, which is effectively a hashmap of key->value pairs such
@@ -123,6 +123,7 @@ public class TileEntityInventoryBasic extends TileEntity implements IInventory {
 		}
 		// the array of hashmaps is then inserted into the parent hashmap for the container
 		parentNBTTagCompound.setTag("Items", dataForAllSlots);
+		return parentNBTTagCompound;
 	}
 
 	// This is where you load the data that you saved in writeToNBT
@@ -163,8 +164,8 @@ public class TileEntityInventoryBasic extends TileEntity implements IInventory {
 
 	// standard code to look up what the human-readable name is
 	@Override
-	public IChatComponent getDisplayName() {
-		return this.hasCustomName() ? new ChatComponentText(this.getName()) : new ChatComponentTranslation(this.getName());
+	public ITextComponent getDisplayName() {
+		return this.hasCustomName() ? new TextComponentString(this.getName()) : new TextComponentTranslation(this.getName());
 	}
 
 	// -----------------------------------------------------------------------------------------------------------

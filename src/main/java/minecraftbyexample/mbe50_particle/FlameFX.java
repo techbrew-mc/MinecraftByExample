@@ -1,23 +1,21 @@
-package minecraftbyexample.mbe50_entityfx;
+package minecraftbyexample.mbe50_particle;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.particle.EntityFX;
-import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.particle.Particle;
+import net.minecraft.client.particle.Particle;
+import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.BlockPos;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
-import org.lwjgl.opengl.GL11;
 
 /**
  * User: The Grey Ghost
  * Date: 24/12/2014
- * Custom EntityFX to illustrate how to add an EntityFX with your own texture and movement/animation behaviour
+ * Custom Particle to illustrate how to add an Particle with your own texture and movement/animation behaviour
  */
-public class FlameFX extends EntityFX
+public class FlameFX extends Particle
 {
   private final ResourceLocation flameRL = new ResourceLocation("minecraftbyexample:entity/flame_fx");
 
@@ -29,7 +27,7 @@ public class FlameFX extends EntityFX
   {
     super(world, x, y, z, velocityX, velocityY, velocityZ);
 
-    particleGravity = Blocks.fire.blockParticleGravity;  /// arbitrary block!  not required here since we have
+    particleGravity = Blocks.FIRE.blockParticleGravity;  /// arbitrary block!  not required here since we have
     // overriden onUpdate()
     particleMaxAge = 100; // not used since we have overridden onUpdate
 
@@ -37,7 +35,7 @@ public class FlameFX extends EntityFX
     this.particleAlpha = ALPHA_VALUE;  // a value less than 1 turns on alpha blending. Otherwise, alpha blending is off
     // and the particle won't be transparent.
 
-    //the vanilla EntityFX constructor added random variation to our starting velocity.  Undo it!
+    //the vanilla Particle constructor added random variation to our starting velocity.  Undo it!
     motionX = velocityX;
     motionY = velocityY;
     motionZ = velocityZ;
@@ -45,11 +43,11 @@ public class FlameFX extends EntityFX
     // set the texture to the flame texture, which we have previously added using TextureStitchEvent
     //   (see TextureStitcherBreathFX)
     TextureAtlasSprite sprite = Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(flameRL.toString());
-    setParticleIcon(sprite);  // initialise the icon to our custom texture
+    setParticleTexture(sprite);  // initialise the icon to our custom texture
   }
 
   /**
-   * Used to control what texture and lighting is used for the EntityFX.
+   * Used to control what texture and lighting is used for the Particle.
    * Returns 1, which means "use a texture from the blocks + items texture sheet"
    * The vanilla layers are:
    * normal particles: ignores world brightness lighting map
@@ -66,7 +64,7 @@ public class FlameFX extends EntityFX
     return 1;
   }
 
-  // can be used to change the brightness of the rendered EntityFX.
+  // can be used to change the brightness of the rendered Particle.
   @Override
   public int getBrightnessForRender(float partialTick)
   {
@@ -80,18 +78,18 @@ public class FlameFX extends EntityFX
   }
 
   // this function is used by EffectRenderer.addEffect() to determine whether depthmask writing should be on or not.
-  // by default, vanilla turns off depthmask writing for entityFX with alphavalue less than 1.0
+  // by default, vanilla turns off depthmask writing for Particle with alphavalue less than 1.0
   // FlameBreathFX uses alphablending (i.e. the FX is partially transparent) but we want depthmask writing on,
   //   otherwise translucent objects (such as water) render over the top of our breath, even if the breath is in front
   //  of the water and not behind
-  @Override
-  public float getAlpha()
-  {
-    return 1.0F;
-  }
+//  @Override
+//  public float getAlpha()
+//  {
+//    return 1.0F;
+//  }
 
   /**
-   * call once per tick to update the EntityFX position, calculate collisions, remove when max lifetime is reached, etc
+   * call once per tick to update the Particle position, calculate collisions, remove when max lifetime is reached, etc
    */
   @Override
   public void onUpdate()
@@ -107,23 +105,23 @@ public class FlameFX extends EntityFX
 
     // collision with a block makes the ball disappear.  But does not collide with entities
     if (isCollided) {
-      this.setDead();
+      this.setExpired();
     }
 
     if (this.particleMaxAge-- <= 0) {
-      this.setDead();
+      this.setExpired();
     }
   }
 
   /**
-   * Render the EntityFX onto the screen.  For more help with the tessellator see
+   * Render the Particle onto the screen.  For more help with the tessellator see
    * http://greyminecraftcoder.blogspot.co.at/2014/12/the-tessellator-and-worldrenderer-18.html
    * <p/>
    * You don't actually need to override this method, this is just a deobfuscated example of the vanilla, to show you
    * how it works in case you want to do something a bit unusual.
    * <p/>
-   * The EntityFX is rendered as a two-dimensional object (Quad) in the world (three-dimensional coordinates).
-   * The corners of the quad are chosen so that the EntityFX is drawn directly facing the viewer (or in other words,
+   * The Particle is rendered as a two-dimensional object (Quad) in the world (three-dimensional coordinates).
+   * The corners of the quad are chosen so that the Particle is drawn directly facing the viewer (or in other words,
    * so that the quad is always directly face-on to the screen.)
    * In order to manage this, it needs to know two direction vectors:
    * 1) the 3D vector direction corresponding to left-right on the viewer's screen (edgeLRdirection)
@@ -146,14 +144,14 @@ public class FlameFX extends EntityFX
    * @param edgeUDdirectionZ edgeUDdirection[XYZ] is the vector direction pointing up-down on the player's screen
    */
   @Override
-  public void renderParticle(WorldRenderer worldRenderer, Entity entity, float partialTick,
-                            float edgeLRdirectionX, float edgeUDdirectionY, float edgeLRdirectionZ,
-                            float edgeUDdirectionX, float edgeUDdirectionZ)
+  public void renderParticle(VertexBuffer worldRenderer, Entity entity, float partialTick,
+                             float edgeLRdirectionX, float edgeUDdirectionY, float edgeLRdirectionZ,
+                             float edgeUDdirectionX, float edgeUDdirectionZ)
   {
-    double minU = this.particleIcon.getMinU();
-    double maxU = this.particleIcon.getMaxU();
-    double minV = this.particleIcon.getMinV();
-    double maxV = this.particleIcon.getMaxV();
+    double minU = this.particleTexture.getMinU();
+    double maxU = this.particleTexture.getMaxU();
+    double minV = this.particleTexture.getMinV();
+    double maxV = this.particleTexture.getMaxV();
 
     double scale = 0.1F * this.particleScale;  // vanilla scaling factor
     final double scaleLR = scale;

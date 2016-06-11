@@ -4,13 +4,14 @@ import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyDirection;
-import net.minecraft.block.state.BlockState;
+import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.util.*;
+import net.minecraft.util.math.*;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
@@ -30,10 +31,15 @@ import java.util.Random;
  */
 public class BlockRedstoneTarget extends Block
 {
+  public static final AxisAlignedBB NORTH_AABB = createBlockBoundsInPixels(0, 0, 15, 16, 16, 16);
+  public static final AxisAlignedBB WEST_AABB = createBlockBoundsInPixels(15, 0, 0, 16, 16, 16);
+  public static final AxisAlignedBB EAST_AABB = createBlockBoundsInPixels(0, 0, 0, 1, 16, 16);
+  public static final AxisAlignedBB SOUTH_AABB = createBlockBoundsInPixels(0, 0, 0, 16, 16, 1);
+
   public BlockRedstoneTarget()
   {
-    super(Material.wood);
-    this.setCreativeTab(CreativeTabs.tabBlock);   // the block will appear on the Blocks tab in creative
+    super(Material.WOOD);
+    this.setCreativeTab(CreativeTabs.BUILDING_BLOCKS);   // the block will appear on the Blocks tab in creative
   }
 
   //----- methods related to redstone
@@ -43,38 +49,38 @@ public class BlockRedstoneTarget extends Block
    * @return
    */
   @Override
-  public boolean canProvidePower()
+  public boolean canProvidePower(IBlockState state)
   {
     return true;
   }
 
   /** How much weak power does this block provide to the adjacent block?  In this example - none.
    * See http://greyminecraftcoder.blogspot.com.au/2015/11/redstone.html for more information
-   * @param worldIn
+   * @param blockAccess
    * @param pos the position of this block
-   * @param state the blockstate of this block
+   * @param blockState the blockstate of this block
    * @param side the side of the block - eg EAST means that this is to the EAST of the adjacent block.
    * @return The power provided [0 - 15]
    */
   @Override
-  public int getWeakPower(IBlockAccess worldIn, BlockPos pos, IBlockState state, EnumFacing side)
+  public int getWeakPower(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side)
   {
     return 0;
   }
 
   /**
    *  The target provides strong power to the block it's mounted on (hanging on)
-   * @param worldIn
+   * @param blockAccess
    * @param pos the position of this block
-   * @param state the blockstate of this block
+   * @param blockState the blockstate of this block
    * @param side the side of the block - eg EAST means that this is to the EAST of the adjacent block.
    * @return The power provided [0 - 15]
    */
 
   @Override
-  public int getStrongPower(IBlockAccess worldIn, BlockPos pos, IBlockState state, EnumFacing side)
+  public int getStrongPower(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side)
   {
-    EnumFacing targetFacing = (EnumFacing)state.getValue(PROPERTYFACING);
+    EnumFacing targetFacing = (EnumFacing)blockState.getValue(PROPERTYFACING);
 
     // only provide strong power through the back of the target.  If the target is facing east, that means
     //   it provides power to the block which lies to the west.
@@ -84,13 +90,13 @@ public class BlockRedstoneTarget extends Block
     //  Bullseye = 15; Outermost ring = 3.
 
     if (side != targetFacing) return 0;
-    if (!(worldIn instanceof World)) return 0;
-    World world = (World)worldIn;  // We're provided with IBlockAccess instead of World because this is sometimes called
+    if (!(blockAccess instanceof World)) return 0;
+    World world = (World)blockAccess;  // We're provided with IBlockAccess instead of World because this is sometimes called
                                    //  during rendering, which is multithreaded and might be called using a ChunkCache.
                                    //  This might mean that the appearance of the adjacent block is sometimes not right,
                                    //   since we always return 0 for a ChunkCache.  I haven't managed to trigger this
                                    //  potential bug, but I can't rule it out.
-    int bestRing = findBestArrowRing(world, pos, state);
+    int bestRing = findBestArrowRing(world, pos, blockState);
     if (bestRing < 0) return 0;
 
     return 15 - 2 * bestRing;
@@ -111,7 +117,7 @@ public class BlockRedstoneTarget extends Block
 
     if (!worldIn.isRemote) {
       if (entityIn instanceof EntityArrow) {
-        AxisAlignedBB targetAABB = getCollisionBoundingBox(worldIn, pos, state);
+        AxisAlignedBB targetAABB = getCollisionBoundingBox(state, worldIn, pos);
         List<EntityArrow> embeddedArrows = worldIn.getEntitiesWithinAABB(EntityArrow.class, targetAABB);
 
         // when a new arrow hits, remove all others which are already embedded
@@ -158,7 +164,7 @@ public class BlockRedstoneTarget extends Block
   {
     final int MISS_VALUE = -1;
     EnumFacing targetFacing = (EnumFacing)state.getValue(PROPERTYFACING);
-    AxisAlignedBB targetAABB = getCollisionBoundingBox(worldIn, pos, state);
+    AxisAlignedBB targetAABB = getCollisionBoundingBox(state, worldIn, pos);
     List<EntityArrow> embeddedArrows = worldIn.getEntitiesWithinAABB(EntityArrow.class, targetAABB);
     if (embeddedArrows.isEmpty()) return MISS_VALUE;
 
@@ -166,13 +172,13 @@ public class BlockRedstoneTarget extends Block
     for (EntityArrow entity : embeddedArrows) {
       if (!entity.isDead && entity instanceof EntityArrow) {
         EntityArrow entityArrow = (EntityArrow) entity;
-        Vec3 hitLocation = getArrowIntersectionWithTarget(entityArrow, targetAABB);
+        Vec3d hitLocation = getArrowIntersectionWithTarget(entityArrow, targetAABB);
         if (hitLocation != null) {
-          Vec3 targetCentre = new Vec3((targetAABB.minX + targetAABB.maxX) / 2.0,
+          Vec3d targetCentre = new Vec3d((targetAABB.minX + targetAABB.maxX) / 2.0,
                                               (targetAABB.minY + targetAABB.maxY) / 2.0,
                                               (targetAABB.minZ + targetAABB.maxZ) / 2.0
           );
-          Vec3 hitRelativeToCentre = hitLocation.subtract(targetCentre);
+          Vec3d hitRelativeToCentre = hitLocation.subtract(targetCentre);
 
           // Which ring did it hit?  Calculate it as the biggest deviation of y and (x and z) from the centre.
 
@@ -207,30 +213,30 @@ public class BlockRedstoneTarget extends Block
    * @param targetAABB
    * @return
    */
-  private static Vec3 getArrowIntersectionWithTarget(EntityArrow arrow, AxisAlignedBB targetAABB)
+  private static Vec3d getArrowIntersectionWithTarget(EntityArrow arrow, AxisAlignedBB targetAABB)
   {
     // create a vector that points in the same direction as the arrow.
     // Start with a vector pointing south - this corresponds to 0 degrees yaw and 0 degrees pitch
     // Then rotate about the x-axis to pitch up or down, then rotate about the y axis to yaw
-    Vec3 arrowDirection = new Vec3(0.0, 0.0, 10.0);
+    Vec3d arrowDirection = new Vec3d(0.0, 0.0, 10.0);
     float rotationPitchRadians = (float)Math.toRadians(arrow.rotationPitch);
     float rotationYawRadians = (float)Math.toRadians(arrow.rotationYaw);
 
     arrowDirection = arrowDirection.rotatePitch(-rotationPitchRadians);
     arrowDirection = arrowDirection.rotateYaw(+rotationYawRadians);
 
-    Vec3 arrowRayOrigin = arrow.getPositionVector();
-    Vec3 arrowRayEndpoint = arrowRayOrigin.add(arrowDirection);
-    MovingObjectPosition hitLocation = targetAABB.calculateIntercept(arrowRayOrigin, arrowRayEndpoint);
+    Vec3d arrowRayOrigin = arrow.getPositionVector();
+    Vec3d arrowRayEndpoint = arrowRayOrigin.add(arrowDirection);
+    RayTraceResult hitLocation = targetAABB.calculateIntercept(arrowRayOrigin, arrowRayEndpoint);
     if (hitLocation == null) return null;
-    if (hitLocation.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return null;
+    if (hitLocation.typeOfHit != RayTraceResult.Type.BLOCK) return null;
     return hitLocation.hitVec;
   }
 
   // ---- methods to control placement of the target (must be on a solid wall)
 
   // When a neighbour changes - check if the supporting wall has been demolished
-  public void onNeighborBlockChange(World worldIn, BlockPos pos, IBlockState state, Block neighborBlock)
+  public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn)
   {
     if (!worldIn.isRemote) { // server side only
       EnumFacing enumfacing = (EnumFacing) state.getValue(PROPERTYFACING);
@@ -285,15 +291,15 @@ public class BlockRedstoneTarget extends Block
 
   // the block will render in the SOLID layer.  See http://greyminecraftcoder.blogspot.co.at/2014/12/block-rendering-18.html for more information.
   @SideOnly(Side.CLIENT)
-  public EnumWorldBlockLayer getBlockLayer()
+  public BlockRenderLayer getBlockLayer()
   {
-    return EnumWorldBlockLayer.SOLID;
+    return BlockRenderLayer.SOLID;
   }
 
   // used by the renderer to control lighting and visibility of other blocks.
   // set to false because this block doesn't fill the entire 1x1x1 space
   @Override
-  public boolean isOpaqueCube()
+  public boolean isOpaqueCube(IBlockState state)
   {
     return false;
   }
@@ -302,7 +308,7 @@ public class BlockRedstoneTarget extends Block
   // (eg) wall or fence to control whether the fence joins itself to this block
   // set to false because this block doesn't fill the entire 1x1x1 space
   @Override
-  public boolean isFullCube()
+  public boolean isFullBlock(IBlockState state)
   {
     return false;
   }
@@ -310,55 +316,46 @@ public class BlockRedstoneTarget extends Block
   // render using a BakedModel (mbe01_block_simple.json --> mbe01_block_simple_model.json)
   // not strictly required because the default (super method) is 3.
   @Override
-  public int getRenderType()
+  public EnumBlockRenderType getRenderType(IBlockState state)
   {
-    return 3;
+    return EnumBlockRenderType.MODEL;
   }
 
   // The block bounds (used for collision and for outlining the block) depend on which way the block is facing
   @Override
-  public void setBlockBoundsBasedOnState(IBlockAccess worldIn, BlockPos pos)
+  public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos)
   {
-    IBlockState blockState = worldIn.getBlockState(pos);
-    updateBlockBounds(blockState);
-  }
-
-  @Override
-  public AxisAlignedBB getCollisionBoundingBox(World worldIn, BlockPos pos, IBlockState state)
-  {
-    this.updateBlockBounds(state);
-    return super.getCollisionBoundingBox(worldIn, pos, state);
-  }
-
-  // update the block's bounds based on its new state
-  private void updateBlockBounds(IBlockState newState)
-  {
-    EnumFacing facing = (EnumFacing) newState.getValue(PROPERTYFACING);
-
+    EnumFacing facing = state.getValue(PROPERTYFACING);
     switch (facing) {
       case NORTH: {
-        this.setBlockBoundsInPixels(0, 0, 15, 16, 16, 16);
-        break;
+        return NORTH_AABB;
       }
       case WEST: {
-        this.setBlockBoundsInPixels(15, 0, 0, 16, 16, 16);
-        break;
+        return WEST_AABB;
       }
       case EAST: {
-        this.setBlockBoundsInPixels(0, 0, 0, 1, 16, 16);
-        break;
+        return EAST_AABB;
       }
       case SOUTH: {
-        this.setBlockBoundsInPixels(0, 0, 0, 16, 16, 1);
-        break;
+        return SOUTH_AABB;
+      }
+      default: {
+        // TODO:  Is this desired?
+        return FULL_BLOCK_AABB;
       }
     }
   }
 
-  private void setBlockBoundsInPixels(int minX, int minY, int minZ, int maxX, int maxY, int maxZ)
+  @Override
+  public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, World worldIn, BlockPos pos)
+  {
+    return super.getCollisionBoundingBox(blockState, worldIn, pos);
+  }
+
+  private static AxisAlignedBB createBlockBoundsInPixels(int minX, int minY, int minZ, int maxX, int maxY, int maxZ)
   {
     final float PIXEL_WIDTH = 1.0F / 16.0F;
-    this.setBlockBounds(minX * PIXEL_WIDTH, minY * PIXEL_WIDTH, minZ * PIXEL_WIDTH,
+    return new AxisAlignedBB(minX * PIXEL_WIDTH, minY * PIXEL_WIDTH, minZ * PIXEL_WIDTH,
                                maxX * PIXEL_WIDTH, maxY * PIXEL_WIDTH, maxZ * PIXEL_WIDTH);
   }
   // ---------methods related to storing information about the block (which way it's facing)
@@ -402,8 +399,8 @@ public class BlockRedstoneTarget extends Block
   // necessary to define which properties your blocks use
   // will also affect the variants listed in the blockstates model file
   @Override
-  protected BlockState createBlockState()
+  protected BlockStateContainer createBlockState()
   {
-    return new BlockState(this, new IProperty[] {PROPERTYFACING});
+    return new BlockStateContainer(this, new IProperty[] {PROPERTYFACING});
   }
 }

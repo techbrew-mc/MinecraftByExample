@@ -1,7 +1,5 @@
 package minecraftbyexample.mbe60_network_messages;
 
-import com.google.common.collect.ImmutableList;
-import io.netty.channel.ChannelHandlerContext;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityTNTPrimed;
 import net.minecraft.entity.monster.EntitySnowman;
@@ -10,13 +8,12 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.projectile.EntityEgg;
 import net.minecraft.entity.projectile.EntityLargeFireball;
 import net.minecraft.entity.projectile.EntitySnowball;
+import net.minecraft.init.SoundEvents;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
-import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.common.network.handshake.NetworkDispatcher;
-import net.minecraftforge.fml.common.network.internal.FMLProxyPacket;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
@@ -65,7 +62,7 @@ public class MessageHandlerOnServer implements IMessageHandler<AirstrikeMessageT
     //  for example see MinecraftServer.updateTimeLightAndEntities(), just under section
     //      this.theProfiler.startSection("jobs");
     //  In this case, the task is to call messageHandlerOnServer.processMessage(message, sendingPlayer)
-    final WorldServer playerWorldServer = sendingPlayer.getServerForPlayer();
+    final WorldServer playerWorldServer = sendingPlayer.getServerWorld();
     playerWorldServer.addScheduledTask(new Runnable() {
       public void run() {
         processMessage(message, sendingPlayer);
@@ -85,7 +82,7 @@ public class MessageHandlerOnServer implements IMessageHandler<AirstrikeMessageT
 
     int dimension = sendingPlayer.dimension;
     MinecraftServer minecraftServer = sendingPlayer.mcServer;
-    for (EntityPlayerMP player : (List<EntityPlayerMP>)minecraftServer.getConfigurationManager().playerEntityList) {
+    for (EntityPlayerMP player : minecraftServer.getPlayerList().getPlayerList()) {
       TargetEffectMessageToClient msg = new TargetEffectMessageToClient(message.getTargetCoordinates());   // must generate a fresh message for every player!
       if (dimension == player.dimension) {
         StartupCommon.simpleNetworkWrapper.sendTo(msg, player);
@@ -106,7 +103,7 @@ public class MessageHandlerOnServer implements IMessageHandler<AirstrikeMessageT
       double xOffset = (random.nextDouble() * 2 - 1) * MAX_HORIZONTAL_SPREAD;
       double zOffset = (random.nextDouble() * 2 - 1) * MAX_HORIZONTAL_SPREAD;
       double yOffset = RELEASE_HEIGHT_ABOVE_TARGET + (random.nextDouble() * 2 - 1) * MAX_VERTICAL_SPREAD;
-      Vec3 releasePoint = message.getTargetCoordinates().addVector(xOffset, yOffset, zOffset);
+      Vec3d releasePoint = message.getTargetCoordinates().addVector(xOffset, yOffset, zOffset);
       float yaw = random.nextFloat() * 360;
       float pitch = random.nextFloat() * 360;
 
@@ -148,7 +145,7 @@ public class MessageHandlerOnServer implements IMessageHandler<AirstrikeMessageT
       world.spawnEntityInWorld(entity);
       final float VOLUME = 10000.0F;
       final float PITCH = 0.8F + random.nextFloat() * 0.2F;
-      world.playSoundEffect(releasePoint.xCoord, releasePoint.yCoord, releasePoint.zCoord, "ambient.weather.thunder", VOLUME, PITCH);
+      world.playSound(releasePoint.xCoord, releasePoint.yCoord, releasePoint.zCoord, SoundEvents.ENTITY_LIGHTNING_THUNDER, SoundCategory.WEATHER, VOLUME, PITCH, false);
     }
 
     return;

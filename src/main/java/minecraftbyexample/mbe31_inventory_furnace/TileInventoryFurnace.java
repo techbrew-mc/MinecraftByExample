@@ -9,10 +9,14 @@ import net.minecraft.nbt.NBTTagIntArray;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
-import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.util.*;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.EnumSkyBlock;
 
 import java.util.Arrays;
@@ -134,7 +138,7 @@ public class TileInventoryFurnace extends TileEntity implements IInventory, ITic
 		if (cachedNumberOfBurningSlots != numberBurning) {
 			cachedNumberOfBurningSlots = numberBurning;
 			if (worldObj.isRemote) {
-				worldObj.markBlockForUpdate(pos);
+				worldObj.markBlockRangeForRenderUpdate(pos, pos);
 			}
 			worldObj.checkLightFor(EnumSkyBlock.BLOCK, pos);
 		}
@@ -346,9 +350,9 @@ public class TileInventoryFurnace extends TileEntity implements IInventory, ITic
 	// This is where you save any data that you don't want to lose when the tile entity unloads
 	// In this case, it saves the state of the furnace (burn time etc) and the itemstacks stored in the fuel, input, and output slots
 	@Override
-	public void writeToNBT(NBTTagCompound parentNBTTagCompound)
+	public NBTTagCompound writeToNBT(NBTTagCompound parentNBTTagCompound)
 	{
-		super.writeToNBT(parentNBTTagCompound); // The super call is required to save and load the tiles location
+		parentNBTTagCompound = super.writeToNBT(parentNBTTagCompound); // The super call is required to save and load the tiles location
 
 //		// Save the stored item stacks
 
@@ -372,6 +376,7 @@ public class TileInventoryFurnace extends TileEntity implements IInventory, ITic
 		parentNBTTagCompound.setShort("CookTime", cookTime);
 	  parentNBTTagCompound.setTag("burnTimeRemaining", new NBTTagIntArray(burnTimeRemaining));
 		parentNBTTagCompound.setTag("burnTimeInitial", new NBTTagIntArray(burnTimeInitialValue));
+		return parentNBTTagCompound;
 	}
 
 	// This is where you load the data that you saved in writeToNBT
@@ -401,15 +406,15 @@ public class TileInventoryFurnace extends TileEntity implements IInventory, ITic
 	// When the world loads from disk, the server needs to send the TileEntity information to the client
 	//  it uses getDescriptionPacket() and onDataPacket() to do this
 	@Override
-	public Packet getDescriptionPacket() {
+	public SPacketUpdateTileEntity getUpdatePacket() {
 		NBTTagCompound nbtTagCompound = new NBTTagCompound();
 		writeToNBT(nbtTagCompound);
 		final int METADATA = 0;
-		return new S35PacketUpdateTileEntity(this.pos, METADATA, nbtTagCompound);
+		return new SPacketUpdateTileEntity(this.pos, METADATA, nbtTagCompound);
 	}
 
 	@Override
-	public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt) {
+	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
 		readFromNBT(pkt.getNbtCompound());
 	}
 
@@ -434,8 +439,8 @@ public class TileInventoryFurnace extends TileEntity implements IInventory, ITic
 
 	// standard code to look up what the human-readable name is
 	@Override
-	public IChatComponent getDisplayName() {
-		return this.hasCustomName() ? new ChatComponentText(this.getName()) : new ChatComponentTranslation(this.getName());
+	public ITextComponent getDisplayName() {
+		return this.hasCustomName() ? new TextComponentString(this.getName()) : new TextComponentTranslation(this.getName());
 	}
 
 	// Fields are used to send non-inventory information from the server to interested clients

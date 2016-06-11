@@ -1,10 +1,10 @@
 MBE05_BLOCK_SMARTBLOCKMODEL2
 Based on code by Herbix
-This example shows how to use ISmartBlockModel in conjunction with ModelLoader.  It is very similar to MBE04, it just
-uses a different method of injecting your ISmartBlockModel into the registry.
+This example shows how to use IBakedModel in conjunction with ModelLoader.  It is very similar to MBE04, it just
+uses a different method of injecting your IBakedModel into the registry.
 Guidelines on choosing which injection method to use
 ModelLoader:
-The ModelLoader can be useful if your ISmartBlockModel is composed of a number of subcomponents and you want to
+The ModelLoader can be useful if your IBakedModel is composed of a number of subcomponents and you want to
   use a model.json for each subcomponent.
 It is also well-suited if you are parsing your own custom model definitions (similar to the B3DModelLoader)
 ModelBakeEvent:
@@ -16,18 +16,18 @@ How it works:
 (2) In mbe05_block_3d_web.json, the model ResourceLocation is set to "minecraftbyexample:smartmodel/webmodel"
 (3) The custom ModelLoader ModelLoader3DWeb, which was previously registered using ModelLoaderRegistry.registerLoader(),
     recognises the smartmodel tag and creates an WebModel (implements IModel).
-(4) The IModel (WebModel) is then "baked" to form an ISmartBlockModel.  During baking, the WebModel loads and bakes the
+(4) The IModel (WebModel) is then "baked" to form an IBakedModel.  During baking, the WebModel loads and bakes the
     models for each of the seven subcomponents (a central "core" plus one model for each of the six strands that can
     extend up, down, east, west, north, or south).  Each of these models is defined using vanilla .json model and a
     blockstates file as usual.  (The blockstates file is necessary to get vanilla to load the model)
 (5) During the render, Block3DWeb.getExtendedBlockState is called, which looks at the block's neighbours to see which
     strands should be drawn (a strand is drawn to each solid neighbour).  The yes/no for each strand is then stored in
     the IExtendedBlockState.
-(5) The IExtendedBlockState is passed to the ISmartBlockModel, which generates an IBakedModel from the sub-component
+(5) The IExtendedBlockState is passed to the IBakedModel, which generates an IBakedModel from the sub-component
     models (including or excluding each one depending on which directions have strands) and then
     returns it to the caller for rendering.
 
-BEWARE! Rendering is multithreaded so your ISmartBlockModel must be thread-safe, preferably immutable.
+BEWARE! Rendering is multithreaded so your IBakedModel must be thread-safe, preferably immutable.
 
 The 3d web block appears in the Blocks tab in the creative inventory.
 
@@ -49,9 +49,9 @@ resources\assets\minecraftbyexample\textures\blocks\mbe05_block_3D_web - the bas
 More background information:
 - blocks: see here http://greyminecraftcoder.blogspot.com.au/2014/12/blocks-18.html
 - rendering blocks: see here http://greyminecraftcoder.blogspot.com.au/p/list-of-topics.html (the topics under the Block Rendering heading)
-- test code for ISmartBlockModel which generates the model quads using an algorithm instead of using a pre-existing model
+- test code for IBakedModel which generates the model quads using an algorithm instead of using a pre-existing model
   https://github.com/MinecraftForge/MinecraftForge/blob/master/src/test/java/net/minecraftforge/debug/ModelBakeEventDebug.java
-- more explanation on ISmartBlockModel http://www.minecraftforge.net/forum/index.php/topic,28714.0.html
+- more explanation on IBakedModel http://www.minecraftforge.net/forum/index.php/topic,28714.0.html
 
 Useful vanilla classes to look at (for BlockStateMapping):  BlockModelShapes.registerAllBlocks()
 

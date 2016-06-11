@@ -7,13 +7,15 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumWorldBlockLayer;
+import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.util.EnumBlockRenderType;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -50,7 +52,7 @@ public class BlockToolTest extends Block
   public BlockToolTest(Material i_material)
   {
     super(i_material);
-    this.setCreativeTab(CreativeTabs.tabBlock);   // the block will appear on the Blocks tab in creative
+    this.setCreativeTab(CreativeTabs.BUILDING_BLOCKS);   // the block will appear on the Blocks tab in creative
     final float DEFAULT_HARDNESS = 1.0F;
     this.setHardness(DEFAULT_HARDNESS);           // default.  can also set when creating the block instance - which is typically what vanilla does
     final int WOOD_HARVEST_LEVEL = 0;
@@ -97,10 +99,10 @@ public class BlockToolTest extends Block
   // Used in some special cases to override default harvesting behaviour (for example - shearing a tree to increase the
   //   sapling drop rate and trigger a special achievement)
   @Override
-  public void harvestBlock(World worldIn, EntityPlayer player, BlockPos pos, IBlockState state, TileEntity te) {
+  public void harvestBlock(World worldIn, EntityPlayer player, BlockPos pos, IBlockState state, @Nullable TileEntity te, @Nullable ItemStack stack) {
     StartupCommon.methodCallLogger.enterMethod("BlockToolTest.harvestBlock",
             "{world}, " + pos + ", " + String.valueOf(state) + ", " + String.valueOf(te));
-    super.harvestBlock(worldIn, player, pos, state, te);
+    super.harvestBlock(worldIn, player, pos, state, te, stack);
     StartupCommon.methodCallLogger.exitMethod("BlockToolTest.harvestBlock", "");
     return;
   }
@@ -129,9 +131,9 @@ public class BlockToolTest extends Block
 
   // This method is not generally useful for overriding but it can be useful for logging to show the rate of block damage per tick
   @Override
-  public float getPlayerRelativeBlockHardness(EntityPlayer playerIn, World worldIn, BlockPos pos) {
-    StartupCommon.methodCallLogger.enterMethod("BlockToolTest.getPlayerRelativeBlockHardness", playerIn.getDisplayNameString() + ", {world}, " + pos);
-    Float result = super.getPlayerRelativeBlockHardness(playerIn, worldIn, pos);
+  public float getPlayerRelativeBlockHardness(IBlockState state, EntityPlayer player, World worldIn, BlockPos pos) {
+    StartupCommon.methodCallLogger.enterMethod("BlockToolTest.getPlayerRelativeBlockHardness", player.getDisplayNameString() + ", {world}, " + pos);
+    Float result = super.getPlayerRelativeBlockHardness(state, player, worldIn, pos);
     StartupCommon.methodCallLogger.exitMethod("BlockToolTest.getPlayerRelativeBlockHardness", String.valueOf(result));
     return result;
   }
@@ -171,16 +173,16 @@ public class BlockToolTest extends Block
 
   // the block will render in the SOLID layer.  See http://greyminecraftcoder.blogspot.co.at/2014/12/block-rendering-18.html for more information.
   @SideOnly(Side.CLIENT)
-  public EnumWorldBlockLayer getBlockLayer()
+  public BlockRenderLayer getBlockLayer()
   {
-    return EnumWorldBlockLayer.SOLID;
+    return BlockRenderLayer.SOLID;
   }
 
   // used by the renderer to control lighting and visibility of other blocks.
   // set to true because this block is opaque and occupies the entire 1x1x1 space
   // not strictly required because the default (super method) is true
   @Override
-  public boolean isOpaqueCube() {
+  public boolean isOpaqueCube(IBlockState state) {
     return true;
   }
 
@@ -189,14 +191,14 @@ public class BlockToolTest extends Block
   // set to true because this block occupies the entire 1x1x1 space
   // not strictly required because the default (super method) is true
   @Override
-  public boolean isFullCube() {
+  public boolean isFullBlock(IBlockState state) {
     return true;
   }
 
   // render using a BakedModel (mbe13_item_tools.json --> mbe13_item_tools_model.json)
   // not strictly required because the default (super method) is 3.
   @Override
-  public int getRenderType() {
-    return 3;
+  public EnumBlockRenderType getRenderType(IBlockState state) {
+    return EnumBlockRenderType.MODEL;
   }
 }

@@ -8,8 +8,8 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemTool;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 
 import java.util.Set;
@@ -40,9 +40,9 @@ import java.util.Set;
 public class ItemToolsTest extends ItemTool
 {
 
-  public ItemToolsTest(float attackDamage, ToolMaterial material, Set effectiveBlocks) {
-    super(attackDamage, material, effectiveBlocks);
-    this.setCreativeTab(CreativeTabs.tabMisc);   // the item will appear on the Miscellaneous tab in creative
+  public ItemToolsTest(float attackDamage, float attackSpeedIn, ToolMaterial material, Set<Block> effectiveBlocks) {
+    super(attackDamage, attackSpeedIn, material, effectiveBlocks);
+    this.setCreativeTab(CreativeTabs.MISC);   // the item will appear on the Miscellaneous tab in creative
 
     final int WOOD_HARDNESS_LEVEL = 0;
     final int STONE_HARDNESS_LEVEL = 1;
@@ -52,21 +52,21 @@ public class ItemToolsTest extends ItemTool
 
   // can be useful to add further "special cases" that ToolClass and ItemTool constructor don't cover.
   @Override
-  public float getStrVsBlock(ItemStack stack, Block block) {
-    StartupCommon.methodCallLogger.enterMethod("ItemToolsTest.getStrVsBlock", stack.getDisplayName() + ", " + block.getLocalizedName());
-    Float result = super.getStrVsBlock(stack, block);
+  public float getStrVsBlock(ItemStack stack, IBlockState state) {
+    StartupCommon.methodCallLogger.enterMethod("ItemToolsTest.getStrVsBlock", stack.getDisplayName() + ", " + state.getBlock().getLocalizedName());
+    Float result = super.getStrVsBlock(stack, state);
     StartupCommon.methodCallLogger.exitMethod("ItemToolsTest.getStrVsBlock", String.valueOf(result));
     return result;
   }
 
   // metadata / damage sensitive version of getStrVsBlock()
-  @Override
-  public float getDigSpeed(ItemStack stack, IBlockState state) {
-    StartupCommon.methodCallLogger.enterMethod("ItemToolsTest.getDigSpeed", stack.getDisplayName() + ", " + state);
-    Float result = super.getDigSpeed(stack, state);
-    StartupCommon.methodCallLogger.exitMethod("ItemToolsTest.getDigSpeed", String.valueOf(result));
-    return result;
-  }
+//  @Override
+//  public float getDigSpeed(ItemStack stack, IBlockState state) {
+//    StartupCommon.methodCallLogger.enterMethod("ItemToolsTest.getDigSpeed", stack.getDisplayName() + ", " + state);
+//    Float result = super.getDigSpeed(stack, state);
+//    StartupCommon.methodCallLogger.exitMethod("ItemToolsTest.getDigSpeed", String.valueOf(result));
+//    return result;
+//  }
 
   //   Item.onBlockStartBreak() - called immediately before the block is destroyed - can be used to abort block breaking before it is destroyed
   @Override
@@ -74,7 +74,7 @@ public class ItemToolsTest extends ItemTool
     StartupCommon.methodCallLogger.enterMethod("ItemToolsTest.onBlockStartBreak", itemstack.getDisplayName() + ", " + pos + ", " + player.getName());
     Boolean result =  super.onBlockStartBreak(itemstack, pos, player);
     if (MinecraftByExample.proxy.playerIsInCreativeMode(player)) {
-      player.addChatComponentMessage(new ChatComponentText("Currently in creative mode; switch to survival mode using /gamemode."));
+      player.addChatComponentMessage(new TextComponentString("Currently in creative mode; switch to survival mode using /gamemode."));
     }
     StartupCommon.methodCallLogger.exitMethod("ItemToolsTest.onBlockStartBreak", String.valueOf(result));
     return result;
@@ -82,12 +82,12 @@ public class ItemToolsTest extends ItemTool
 
   @Override
   // damage the item when it destroys a block - defaults to 1 damage for tools
-  public boolean onBlockDestroyed(ItemStack stack, World worldIn, Block blockIn, BlockPos pos, EntityLivingBase playerIn) {
+  public boolean onBlockDestroyed(ItemStack stack, World worldIn, IBlockState state, BlockPos pos, EntityLivingBase entityLiving) {
     StartupCommon.methodCallLogger.enterMethod("ItemToolsTest.onBlockDestroyed",
-            stack.getDisplayName() + ", {world}, " + blockIn.getLocalizedName() + ", "
-                    + pos + ", " + playerIn.getName()
+            stack.getDisplayName() + ", {world}, " + state + ", "
+                    + pos + ", " + entityLiving.getName()
     );
-    Boolean result = super.onBlockDestroyed(stack, worldIn, blockIn, pos, playerIn);
+    Boolean result = super.onBlockDestroyed(stack, worldIn, state, pos, entityLiving);
     StartupCommon.methodCallLogger.exitMethod("ItemToolsTest.onBlockDestroyed", String.valueOf(result));
     return result;
   }

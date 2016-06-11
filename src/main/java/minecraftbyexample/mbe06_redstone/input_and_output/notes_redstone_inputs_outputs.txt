@@ -5,7 +5,7 @@ The redstone meter shows two techniques:
 For (1):
 We want to change the appearance of our block based on the amount of redstone power it is receiving.
 You might think that this could be done using
-Block.getActualState() or ISmartBlockModel using getExtendedState()
+Block.getActualState() or IBakedModel using getExtendedState()
 however unfortunately this doesn't work.
 The reason is that these methods are provided with an IBlockAccess instead of a World; block rendering is multithreaded and
   is performed on a cached copy of the world, which only stores some of the information and has no direct access to

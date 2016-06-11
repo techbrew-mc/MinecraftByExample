@@ -26,7 +26,7 @@ public class ItemHUDactivator extends Item
   public ItemHUDactivator()
   {
     this.setMaxStackSize(1);
-    this.setCreativeTab(CreativeTabs.tabMisc);   // the item will appear on the Miscellaneous tab in creative
+    this.setCreativeTab(CreativeTabs.MISC);   // the item will appear on the Miscellaneous tab in creative
   }
 
   // if the item is being held in the hotbar, switch to survival mode.
@@ -40,7 +40,7 @@ public class ItemHUDactivator extends Item
     if (worldIn.isRemote) return;
     if (!(entityIn instanceof EntityPlayerMP)) return;
     EntityPlayerMP entityPlayerMP = (EntityPlayerMP) entityIn;
-    if (entityPlayerMP.theItemInWorldManager.getGameType() != WorldSettings.GameType.SURVIVAL) {
+    if (entityPlayerMP.interactionManager.getGameType() != WorldSettings.GameType.SURVIVAL) {
       entityPlayerMP.setGameType(WorldSettings.GameType.SURVIVAL);
     }
   }

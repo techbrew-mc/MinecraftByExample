@@ -19,7 +19,7 @@ Blocks -
    block with scheduled update
    redstone compatible blocks
    animated texture
-   ISmartBlockModel
+   IBakedModel
 Items -
    #simple item
    #item with sub-types
@@ -45,7 +45,7 @@ Entities
   - use of datawatchers
 Sound
   - point and continuous sound effects
-EntityFX
+Particle
   # simple effect generator
 Events
   show some events on different busses

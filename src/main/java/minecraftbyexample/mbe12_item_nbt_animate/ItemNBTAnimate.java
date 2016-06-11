@@ -1,14 +1,20 @@
 package minecraftbyexample.mbe12_item_nbt_animate;
 
-import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.SoundEvents;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.EnumActionResult;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -30,7 +36,7 @@ public class ItemNBTAnimate extends Item
     this.setMaxDamage(0);
     this.setHasSubtypes(false);
     this.setMaxStackSize(1);
-    this.setCreativeTab(CreativeTabs.tabMisc);   // items will appear on the Miscellaneous creative tab
+    this.setCreativeTab(CreativeTabs.MISC);   // items will appear on the Miscellaneous creative tab
   }
 
   // When the user presses and holds right click, there are three phases:
@@ -41,10 +47,11 @@ public class ItemNBTAnimate extends Item
   private final int CHARGE_UP_INITIAL_PAUSE_TICKS = 10;
   private final int CHARGE_UP_DURATION_TICKS = 20;
 
-  @Override
+  // TODO:  1.9.4
+  //@Override
   @SideOnly(Side.CLIENT)
   public ModelResourceLocation getModel(ItemStack stack, EntityPlayer player, int ticksRemaining) {
-    if (!player.isUsingItem()) {
+    if (!player.isHandActive()) {
       return ItemNBTModels.getInstance().getModel(0);
     }
 
@@ -91,7 +98,7 @@ public class ItemNBTAnimate extends Item
   // --> if the gem is unbound, store the current location
   //  if the gem is bound, start the charge up sequence
   @Override
-  public ItemStack onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn) {
+  public ActionResult<ItemStack> onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn, EnumHand hand) {
     NBTTagCompound nbtTagCompound = itemStackIn.getTagCompound();
 
     if (playerIn.isSneaking()) { // shift pressed; save (or overwrite) current location
@@ -109,20 +116,20 @@ public class ItemNBTAnimate extends Item
         bound = nbtTagCompound.getBoolean("Bound");
       }
       if (bound) {
-        playerIn.setItemInUse(itemStackIn, this.getMaxItemUseDuration(itemStackIn)); // start the charge up sequence
+        playerIn.setHeldItem(EnumHand.MAIN_HAND, itemStackIn); //  TODO: 1.9.4 equivalent for this.getMaxItemUseDuration(itemStackIn)); // start the charge up sequence
       } else {
         if (worldIn.isRemote) {  // only on the client side, else you will get two messages..
-          playerIn.addChatComponentMessage(new ChatComponentText("Gem doesn't have a stored location! Shift right click to store your current location"));
+          playerIn.addChatComponentMessage(new TextComponentString("Gem doesn't have a stored location! Shift right click to store your current location"));
         }
       }
     }
-    return itemStackIn;
+    return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, itemStackIn);
   }
 
   // called when the player has held down the right click for the full charge-up duration
   // in this case - destroy the item
   @Override
-  public ItemStack onItemUseFinish(ItemStack stack, World worldIn, EntityPlayer playerIn)
+  public ItemStack onItemUseFinish(ItemStack stack, World worldIn, EntityLivingBase entityLiving)
   {
     NBTTagCompound nbtTagCompound = stack.getTagCompound();
     if (nbtTagCompound == null || !nbtTagCompound.hasKey("Bound") || nbtTagCompound.getBoolean("Bound") != true ) {
@@ -134,11 +141,11 @@ public class ItemNBTAnimate extends Item
       double x = nbtTagCompound.getDouble("X");  // returns a default if not present
       double y = nbtTagCompound.getDouble("Y");
       double z = nbtTagCompound.getDouble("Z");
-      if (playerIn instanceof EntityPlayerMP) { // should be an EntityPlayerMP check first just to be sure to avoid crash
-        EntityPlayerMP entityPlayerMP = (EntityPlayerMP) playerIn;
+      if (entityLiving instanceof EntityPlayerMP) { // should be an EntityPlayerMP check first just to be sure to avoid crash
+        EntityPlayerMP entityPlayerMP = (EntityPlayerMP) entityLiving;
 
-        entityPlayerMP.playerNetServerHandler.setPlayerLocation(x, y, z, entityPlayerMP.rotationYaw, entityPlayerMP.rotationPitch);
-        worldIn.playSoundEffect(x, y, z, "mob.endermen.portal", 1.0F, 1.0F);
+        entityPlayerMP.connection.setPlayerLocation(x, y, z, entityPlayerMP.rotationYaw, entityPlayerMP.rotationPitch);
+        worldIn.playSound(x, y, z, SoundEvents.ENTITY_ENDERMEN_TELEPORT, SoundCategory.PLAYERS, 1.0F, 1.0F, false);
       }
     }
     return null;

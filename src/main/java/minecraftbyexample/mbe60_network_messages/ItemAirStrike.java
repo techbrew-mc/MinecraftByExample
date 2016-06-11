@@ -5,9 +5,12 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.EnumActionResult;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 import java.util.List;
@@ -24,42 +27,43 @@ public class ItemAirStrike extends Item
   public ItemAirStrike()
   {
     this.setMaxStackSize(1);
-    this.setCreativeTab(CreativeTabs.tabMisc);   // the item will appear on the Miscellaneous tab in creative
+    this.setCreativeTab(CreativeTabs.MISC);   // the item will appear on the Miscellaneous tab in creative
   }
 
   // called when the item is used to right-click on a block
   @Override
-  public boolean onItemUse(ItemStack stack, EntityPlayer playerIn, World worldIn, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ) {
+  public EnumActionResult onItemUse(ItemStack stack, EntityPlayer playerIn, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
+  {
     if (!worldIn.isRemote) {  // don't execute on the server side!
-      return true;
+      return EnumActionResult.PASS;
     }
-    Vec3 targetLocation = new Vec3(pos.getX()+ 0.5, pos.getY() + 1.1, pos.getZ() + 0.5);
+    Vec3d targetLocation = new Vec3d(pos.getX()+ 0.5, pos.getY() + 1.1, pos.getZ() + 0.5);
     callAirstrikeOnTarget(targetLocation);
-    return true;  // tell caller we have processed the click
+    return EnumActionResult.SUCCESS;  // tell caller we have processed the click
   }
 
   // called when the item is right clicked in the air (or when clicked on a block but onItemUse returned false)
   @Override
-  public ItemStack onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn)
+  public ActionResult<ItemStack> onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn, EnumHand hand)
   {
     if (!worldIn.isRemote) {  // don't execute on the server side!
-      return itemStackIn;
+      return new ActionResult<ItemStack>(EnumActionResult.PASS, itemStackIn);
     }
 
     // target a location in the direction that the player is looking
     final float PARTIAL_TICKS = 1.0F;
-    Vec3 playerLook = playerIn.getLookVec();
-    Vec3 playerFeetPosition = playerIn.getPositionEyes(PARTIAL_TICKS).subtract(0, playerIn.getEyeHeight(), 0);
+    Vec3d playerLook = playerIn.getLookVec();
+    Vec3d playerFeetPosition = playerIn.getPositionEyes(PARTIAL_TICKS).subtract(0, playerIn.getEyeHeight(), 0);
     final double TARGET_DISTANCE = 6.0;
     final double HEIGHT_ABOVE_FEET = 0.1;
-    Vec3 targetPosition = playerFeetPosition.addVector(playerLook.xCoord * TARGET_DISTANCE, HEIGHT_ABOVE_FEET,
+    Vec3d targetPosition = playerFeetPosition.addVector(playerLook.xCoord * TARGET_DISTANCE, HEIGHT_ABOVE_FEET,
                                                        playerLook.zCoord * TARGET_DISTANCE);
     callAirstrikeOnTarget(targetPosition);
-    return itemStackIn;
+    return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, itemStackIn);
   }
 
   // send a network message to the server to bombard the target location with a random projectile
-  public void callAirstrikeOnTarget(Vec3 targetPosition)
+  public void callAirstrikeOnTarget(Vec3d targetPosition)
   {
     Random random = new Random();
     AirstrikeMessageToServer.Projectile [] choices = AirstrikeMessageToServer.Projectile.values();

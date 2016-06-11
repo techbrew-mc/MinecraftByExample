@@ -4,10 +4,10 @@ import minecraftbyexample.usefultools.UsefulFunctions;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
-import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -109,24 +109,25 @@ public class TileEntityRedstoneMeter extends TileEntity {
   // In this case, the power level is recalculated every tick on the client anyway, so we don't need to send anything,
   //   but we need to store the power level on the server, to allow for proper calculation of the redstone power
 	@Override
-	public Packet getDescriptionPacket() {
+	public SPacketUpdateTileEntity getUpdatePacket() {
 		NBTTagCompound nbtTagCompound = new NBTTagCompound();
 		writeToNBT(nbtTagCompound);
 		int metadata = getBlockMetadata();
-		return new S35PacketUpdateTileEntity(this.pos, metadata, nbtTagCompound);
+		return new SPacketUpdateTileEntity(this.pos, metadata, nbtTagCompound);
 	}
 
 	@Override
-	public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt) {
+	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
 		readFromNBT(pkt.getNbtCompound());
 	}
 
 	// This is where you save any data that you don't want to lose when the tile entity unloads
 	@Override
-	public void writeToNBT(NBTTagCompound parentNBTTagCompound)
+	public NBTTagCompound writeToNBT(NBTTagCompound parentNBTTagCompound)
 	{
-		super.writeToNBT(parentNBTTagCompound); // The super call is required to save the tiles location
-    parentNBTTagCompound.setInteger("storedPowerLevel", storedPowerLevel);
+        parentNBTTagCompound = super.writeToNBT(parentNBTTagCompound); // The super call is required to save the tiles location
+        parentNBTTagCompound.setInteger("storedPowerLevel", storedPowerLevel);
+        return parentNBTTagCompound;
   }
 
 	// This is where you load the data that you saved in writeToNBT
